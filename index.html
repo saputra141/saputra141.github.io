@@ -2,27 +2,28 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Video Downloader</title>
+
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
   min-height:100vh;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   padding:20px;
   background:#101827;
   color:white;
-  font-family:Arial,sans-serif
+  font-family:Arial,sans-serif;
 }
 .container{
   width:100%;
   max-width:430px;
   padding:25px;
   background:#1e293b;
-  border-radius:18px
+  border-radius:18px;
 }
 h1{text-align:center}
 p{text-align:center;color:#cbd5e1}
@@ -32,12 +33,12 @@ input[type=url]{
   margin:12px 0;
   border:0;
   border-radius:9px;
-  font-size:15px
+  font-size:15px;
 }
 .options{
   display:flex;
   gap:25px;
-  margin:18px 0
+  margin:18px 0;
 }
 .options label{cursor:pointer}
 button{
@@ -49,7 +50,7 @@ button{
   border-radius:9px;
   font-size:16px;
   font-weight:bold;
-  cursor:pointer
+  cursor:pointer;
 }
 button:disabled{opacity:.6}
 #status{
@@ -57,10 +58,11 @@ button:disabled{opacity:.6}
   text-align:center;
   color:#facc15;
   font-size:14px;
-  overflow-wrap:anywhere
+  overflow-wrap:anywhere;
 }
 </style>
 </head>
+
 <body>
 <div class="container">
   <h1>Video Downloader</h1>
@@ -77,6 +79,7 @@ button:disabled{opacity:.6}
       <input type="radio" name="format" value="mp4" checked>
       MP4 Video
     </label>
+
     <label>
       <input type="radio" name="format" value="mp3">
       MP3 Audio
@@ -94,13 +97,15 @@ button:disabled{opacity:.6}
 
 <script>
 const WORKER_URL =
-  "https://video-downloader-api.koinklub.workers.dev/";
+"https://video-downloader-api.koinklub.workers.dev/";
 
 async function downloadVideo(){
+
   const url = document.getElementById("videoUrl").value.trim();
   const format = document.querySelector(
     'input[name="format"]:checked'
   ).value;
+
   const status = document.getElementById("status");
   const button = document.getElementById("downloadButton");
 
@@ -114,17 +119,22 @@ async function downloadVideo(){
     const host = parsed.hostname.toLowerCase();
 
     const allowed = [
-      "instagram.com","www.instagram.com",
-      "facebook.com","www.facebook.com","fb.watch",
-      "tiktok.com","www.tiktok.com","vm.tiktok.com"
+      "instagram.com",
+      "www.instagram.com",
+      "facebook.com",
+      "www.facebook.com",
+      "fb.watch",
+      "tiktok.com",
+      "www.tiktok.com",
+      "vm.tiktok.com"
     ];
 
     if(!allowed.includes(host)){
-      status.textContent = "Platform atau link tidak didukung.";
+      status.textContent = "Link bukan dari platform yang didukung.";
       return;
     }
-  }catch(e){
-    status.textContent = "Link tidak valid.";
+  }catch(error){
+    status.textContent = "Format link tidak valid.";
     return;
   }
 
@@ -132,9 +142,12 @@ async function downloadVideo(){
   status.textContent = "Mengirim permintaan ke server...";
 
   try{
+
     const response = await fetch(WORKER_URL,{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json"
+      },
       body:JSON.stringify({
         video_url:url,
         format:format
@@ -144,16 +157,23 @@ async function downloadVideo(){
     const result = await response.json();
 
     if(!response.ok){
-      throw new Error(result.error || "Permintaan gagal.");
+      throw new Error(
+        (result.error || "Permintaan gagal.") +
+        (result.detail ? " - " + result.detail : "")
+      );
     }
 
     status.textContent =
-      "Permintaan berhasil dikirim! Buka GitHub Actions untuk memeriksa proses dan hasil download.";
+      "Berhasil dikirim! Periksa GitHub Actions untuk melihat proses download dan hasilnya.";
 
   }catch(error){
+
     status.textContent = "Gagal: " + error.message;
+
   }finally{
+
     button.disabled = false;
+
   }
 }
 </script>
