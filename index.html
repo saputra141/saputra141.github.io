@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Social Downloader</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#101827;
+  color:white;
+  min-height:100vh;
+  padding:25px 16px;
+}
+.container{max-width:480px;margin:35px auto}
+.logo{
+  width:65px;height:65px;border-radius:20px;
+  background:#2563eb;display:grid;place-items:center;
+  font-size:30px;margin:auto;
+}
+h1{text-align:center;font-size:27px;margin:18px 0 8px}
+.subtitle{text-align:center;color:#9ca3af;font-size:14px}
+.card{
+  background:#1e293b;padding:22px;border-radius:20px;
+  margin-top:28px;border:1px solid #334155;
+}
+label{display:block;margin:17px 0 9px;font-size:14px}
+input{
+  width:100%;padding:15px;border-radius:12px;
+  background:#0f172a;border:1px solid #475569;
+  color:white;font-size:14px;outline:none;
+}
+.formats{display:flex;gap:12px}
+.format{
+  flex:1;padding:15px;text-align:center;
+  border:1px solid #475569;border-radius:12px;
+  cursor:pointer;color:#cbd5e1;
+}
+.format input{width:auto}
+.format:has(input:checked){
+  border-color:#3b82f6;background:#1d4ed8;
+  color:white;
+}
+button{
+  width:100%;padding:16px;margin-top:22px;
+  border:0;border-radius:12px;background:#2563eb;
+  color:white;font-weight:bold;font-size:16px;
+  cursor:pointer;
+}
+button:disabled{opacity:.5}
+.note{text-align:center;color:#94a3b8;font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">⬇</div>
+  <h1>Social Downloader</h1>
+  <p class="subtitle">Instagram • Facebook • TikTok</p>
+
+  <div class="card">
+    <h3>Download Video & Audio</h3>
+
+    <label>Tempel link video</label>
+    <input id="url" type="url"
+      placeholder="https://...">
+
+    <label>Pilih format</label>
+    <div class="formats">
+      <label class="format">
+        <input type="radio" name="format" value="mp4" checked>
+        MP4 Video
+      </label>
+      <label class="format">
+        <input type="radio" name="format" value="mp3">
+        MP3 Audio
+      </label>
+    </div>
+
+    <button id="download" onclick="startDownload()">
+      DOWNLOAD
+    </button>
+
+    <p class="note" id="status">
+      Kualitas otomatis mengikuti sumber tertinggi yang tersedia.
+    </p>
+  </div>
+</div>
+
+<script>
+function startDownload(){
+  const url=document.getElementById("url").value.trim();
+  const format=document.querySelector(
+    'input[name="format"]:checked'
+  ).value;
+
+  const valid=[
+    "instagram.com",
+    "www.instagram.com",
+    "facebook.com",
+    "www.facebook.com",
+    "m.facebook.com",
+    "fb.watch",
+    "tiktok.com",
+    "www.tiktok.com",
+    "vm.tiktok.com",
+    "vt.tiktok.com"
+  ];
+
+  try{
+    const parsed=new URL(url);
+    if(parsed.protocol!=="https:" ||
+       !valid.includes(parsed.hostname.toLowerCase())){
+      throw new Error();
+    }
+  }catch(e){
+    alert("Masukkan link Instagram, Facebook, atau TikTok yang valid.");
+    return;
+  }
+
+  document.getElementById("status").textContent=
+    "Halaman siap. Backend downloader belum dihubungkan.";
+}
+</script>
+</body>
+</html>
