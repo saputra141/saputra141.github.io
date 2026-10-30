@@ -1,23 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Video Downloader</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#071426;color:white;font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{width:100%;max-width:430px;background:#10243d;padding:28px 22px;border-radius:18px;box-shadow:0 10px 35px #0005}
+body{margin:0;background:#071426;color:white;font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+.container{width:100%;max-width:440px;background:#10243d;padding:25px 20px;border-radius:18px;box-shadow:0 10px 35px #0005}
 h1{text-align:center;margin:0 0 8px;font-size:27px}
-.sub{text-align:center;color:#a9bdd4;margin-bottom:28px}
-input[type=url]{width:100%;padding:16px;border:1px solid #49617c;border-radius:10px;background:#071426;color:white;font-size:15px;outline:none}
-.formats{display:flex;gap:25px;justify-content:center;margin:22px 0}
-.formats label{cursor:pointer}
-button{width:100%;padding:16px;border:0;border-radius:10px;background:#1685ef;color:white;font-size:16px;font-weight:bold;cursor:pointer}
+.sub{text-align:center;color:#a9bdd4;margin-bottom:25px}
+input[type=url],select{width:100%;padding:15px;border:1px solid #49617c;border-radius:10px;background:#071426;color:white;font-size:15px}
+label{display:block;margin:18px 0 9px;color:#dce8f5}
+.formats{display:flex;gap:22px;justify-content:center;margin:18px 0}
+.formats label{margin:0;cursor:pointer}
+button{width:100%;padding:15px;border:0;border-radius:10px;background:#1685ef;color:white;font-size:16px;font-weight:bold;cursor:pointer;margin-top:12px}
 button:disabled{opacity:.55;cursor:wait}
-#status{text-align:center;margin-top:20px;line-height:1.5;color:#d6e5f5;overflow-wrap:anywhere}
-#status a{color:#55c5ff}
+#status{text-align:center;margin-top:18px;line-height:1.5;color:#d6e5f5;overflow-wrap:anywhere}
+.note{text-align:center;color:#8fa8c2;font-size:12px;margin-top:17px}
 </style>
 </head>
 <body>
@@ -32,101 +32,186 @@ button:disabled{opacity:.55;cursor:wait}
 <label><input type="radio" name="format" value="mp3"> MP3 Audio</label>
 </div>
 
+<label for="resolution">Pilih resolusi video</label>
+<select id="resolution" disabled>
+<option value="best">Otomatis (terbaik)</option>
+</select>
+
+<button id="checkBtn" onclick="checkResolution()">CEK RESOLUSI</button>
 <button id="downloadBtn" onclick="startDownload()">DOWNLOAD</button>
+
 <div id="status"></div>
+<div class="note">Gunakan video milik sendiri atau yang kamu punya izin untuk mengunduhnya.</div>
 </div>
 
 <script>
-const API = "https://video-downloader-api.koinklub.workers.dev/";
+const API="https://video-downloader-api.koinklub.workers.dev/";
+const urlInput=document.getElementById("videoUrl");
+const resolutionSelect=document.getElementById("resolution");
+const checkBtn=document.getElementById("checkBtn");
+const downloadBtn=document.getElementById("downloadBtn");
+const statusBox=document.getElementById("status");
 
-const button = document.getElementById("downloadBtn");
-const statusBox = document.getElementById("status");
-const urlInput = document.getElementById("videoUrl");
+let checkedUrl="";
+let availableResolutions=[];
 
 function wait(ms){
   return new Promise(resolve=>setTimeout(resolve,ms));
 }
 
-async function startDownload(){
-  const videoUrl = urlInput.value.trim();
-  const format = document.querySelector('input[name="format"]:checked').value;
+function resetResolutions(){
+  checkedUrl="";
+  availableResolutions=[];
+  resolutionSelect.innerHTML='<option value="best">Otomatis (terbaik)</option>';
+  resolutionSelect.disabled=true;
+}
+
+urlInput.addEventListener("input",resetResolutions);
+
+async function sendRequest(payload){
+  const response=await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  });
+  const data=await response.json();
+  if(!response.ok||!data.success||!data.id){
+    throw new Error(data.error||"Permintaan gagal dikirim.");
+  }
+  return data.id;
+}
+
+async function waitForResult(id){
+  const deadline=Date.now()+30*60*1000;
+
+  while(Date.now()<deadline){
+    await wait(5000);
+
+    const response=await fetch(
+      API+"status?id="+encodeURIComponent(id),
+      {cache:"no-store"}
+    );
+
+    if(!response.ok) continue;
+
+    const result=await response.json();
+
+    if(result.status==="completed") return result;
+    if(result.status==="failed"){
+      throw new Error(result.error||"Proses gagal.");
+    }
+  }
+
+  throw new Error("Proses terlalu lama. Silakan coba lagi.");
+}
+
+async function checkResolution(){
+  const videoUrl=urlInput.value.trim();
 
   if(!videoUrl){
-    statusBox.textContent = "Masukkan link video terlebih dahulu.";
+    statusBox.textContent="Masukkan link video terlebih dahulu.";
     return;
   }
 
-  button.disabled = true;
-  button.textContent = "MEMPROSES...";
-  statusBox.textContent = "Mengirim permintaan download...";
+  checkBtn.disabled=true;
+  checkBtn.textContent="MEMERIKSA...";
+  statusBox.textContent="Sedang memeriksa resolusi video...";
 
   try{
-    const response = await fetch(API,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        video_url:videoUrl,
-        format:format
-      })
+    const id=await sendRequest({
+      video_url:videoUrl,
+      format:"mp4",
+      mode:"inspect"
     });
 
-    const data = await response.json();
+    const result=await waitForResult(id);
+    const heights=result.formats||[];
 
-    if(!response.ok || !data.success || !data.id){
-      throw new Error(data.error || "Gagal mengirim permintaan.");
+    availableResolutions=[...new Set(heights)]
+      .filter(h=>Number(h)>0)
+      .sort((a,b)=>b-a);
+
+    resolutionSelect.innerHTML="";
+    resolutionSelect.add(new Option("Otomatis (terbaik)","best"));
+
+    if(availableResolutions.length===0){
+      statusBox.textContent="Resolusi tidak ditemukan. Coba unduh dengan pilihan otomatis.";
+    }else{
+      availableResolutions.forEach(height=>{
+        let label=height+"p";
+        if(height>=2160) label+=" (4K)";
+        else if(height>=1440) label+=" (2K)";
+        else if(height>=1080) label+=" (Full HD)";
+        else if(height>=720) label+=" (HD)";
+        resolutionSelect.add(new Option(label,String(height)));
+      });
+      statusBox.textContent="Resolusi tersedia berhasil ditemukan.";
     }
 
-    statusBox.textContent = "Video sedang diproses. Mohon tunggu...";
-
-    const id = data.id;
-    const deadline = Date.now() + 30 * 60 * 1000;
-
-    while(Date.now() < deadline){
-      await wait(5000);
-
-      const check = await fetch(
-        API + "status?id=" + encodeURIComponent(id),
-        {cache:"no-store"}
-      );
-
-      if(!check.ok) continue;
-
-      const result = await check.json();
-
-      if(result.status === "completed"){
-        statusBox.textContent = "Download selesai! Mengunduh file...";
-
-        const downloadUrl = API + "download?id=" + encodeURIComponent(id);
-
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-
-        statusBox.innerHTML =
-          'Jika download tidak otomatis dimulai, <a href="' +
-          downloadUrl +
-          '">tekan di sini untuk mengunduh</a>.';
-
-        return;
-      }
-
-      if(result.status === "failed"){
-        throw new Error(result.error || "Video gagal diproses.");
-      }
-
-      statusBox.textContent = "Video sedang diproses. Mohon tunggu...";
-    }
-
-    throw new Error("Waktu proses terlalu lama. Silakan coba lagi.");
+    resolutionSelect.disabled=false;
+    checkedUrl=videoUrl;
 
   }catch(error){
-    statusBox.textContent = "Gagal: " + error.message;
+    statusBox.textContent="Gagal memeriksa: "+error.message;
   }finally{
-    button.disabled = false;
-    button.textContent = "DOWNLOAD";
+    checkBtn.disabled=false;
+    checkBtn.textContent="CEK RESOLUSI";
+  }
+}
+
+async function startDownload(){
+  const videoUrl=urlInput.value.trim();
+  const format=document.querySelector('input[name="format"]:checked').value;
+
+  if(!videoUrl){
+    statusBox.textContent="Masukkan link video terlebih dahulu.";
+    return;
+  }
+
+  if(format==="mp4"&&checkedUrl!==videoUrl){
+    statusBox.textContent="Tekan CEK RESOLUSI terlebih dahulu.";
+    return;
+  }
+
+  downloadBtn.disabled=true;
+  checkBtn.disabled=true;
+  downloadBtn.textContent="MEMPROSES...";
+
+  try{
+    statusBox.textContent="Mengirim permintaan download...";
+
+    const id=await sendRequest({
+      video_url:videoUrl,
+      format:format,
+      mode:"download",
+      resolution:format==="mp4"?resolutionSelect.value:"best"
+    });
+
+    statusBox.textContent="Video sedang diproses. Mohon tunggu...";
+
+    await waitForResult(id);
+
+    const downloadUrl=API+"download?id="+encodeURIComponent(id);
+
+    statusBox.textContent="Selesai! Mengunduh file...";
+
+    const link=document.createElement("a");
+    link.href=downloadUrl;
+    link.download="";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    statusBox.innerHTML=
+      'Jika tidak otomatis terunduh, <a style="color:#55c5ff" href="'+
+      downloadUrl+'">tekan di sini</a>.';
+
+  }catch(error){
+    statusBox.textContent="Gagal: "+error.message;
+  }finally{
+    downloadBtn.disabled=false;
+    checkBtn.disabled=false;
+    downloadBtn.textContent="DOWNLOAD";
   }
 }
 </script>
