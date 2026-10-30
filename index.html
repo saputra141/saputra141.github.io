@@ -11,6 +11,9 @@
 <meta name="description" content="FBT DOWNLOADER membantu mengunduh video dan audio dengan mudah.">
 <meta name="robots" content="index, follow">
 
+<!-- GOOGLE ADSENSE VERIFICATION -->
+<meta name="google-adsense-account" content="ca-pub-7629758385452727">
+
 <style>
 :root {
   --bg: #080d18;
@@ -24,9 +27,7 @@
   --red: #ff6464;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -105,13 +106,8 @@ h1 {
   font-size: 14px;
 }
 
-.input:focus {
-  border-color: var(--green);
-}
-
-.input::placeholder {
-  color: #65748b;
-}
+.input:focus { border-color: var(--green); }
+.input::placeholder { color: #65748b; }
 
 .platforms {
   display: flex;
@@ -231,9 +227,7 @@ h1 {
   color: var(--muted);
 }
 
-.eta strong {
-  color: white;
-}
+.eta strong { color: white; }
 
 .result {
   display: none;
@@ -271,9 +265,7 @@ h1 {
   line-height: 1.8;
 }
 
-.footer strong {
-  color: var(--green);
-}
+.footer strong { color: var(--green); }
 
 .spinner {
   display: inline-block;
@@ -302,115 +294,96 @@ h1 {
 
 <div class="container">
 
-  <header class="header">
-    <div class="logo">FBT</div>
+<header class="header">
+  <div class="logo">FBT</div>
+  <h1>FBT DOWNLOADER</h1>
+  <p>
+    Download video dan audio dengan mudah.
+    Cepat, praktis, dan sederhana.
+  </p>
+</header>
 
-    <h1>FBT DOWNLOADER</h1>
+<main class="card">
 
-    <p>
-      Download video dan audio dengan mudah.
-      Cepat, praktis, dan sederhana.
-    </p>
-  </header>
+  <label class="label" for="videoUrl">
+    Masukkan Link Video
+  </label>
 
-  <main class="card">
+  <input
+    id="videoUrl"
+    class="input"
+    type="url"
+    placeholder="Tempel link Facebook, Instagram, TikTok..."
+    autocomplete="url"
+  >
 
-    <label class="label" for="videoUrl">
-      Masukkan Link Video
-    </label>
+  <div class="platforms">
+    <span class="platform">Facebook</span>
+    <span class="platform">Instagram</span>
+    <span class="platform">TikTok</span>
+  </div>
 
-    <input
-      id="videoUrl"
-      class="input"
-      type="url"
-      placeholder="Tempel link Facebook, Instagram, TikTok..."
-      autocomplete="url"
-    >
+  <label class="label">Pilih Format Download</label>
 
-    <div class="platforms">
-      <span class="platform">Facebook</span>
-      <span class="platform">Instagram</span>
-      <span class="platform">TikTok</span>
-    </div>
-
-    <label class="label">Pilih Format Download</label>
-
-    <div class="options">
-
-      <button
-        class="option active"
-        type="button"
-        data-format="mp4"
-      >
-        MP4 Video
-      </button>
-
-      <button
-        class="option"
-        type="button"
-        data-format="mp3"
-      >
-        MP3 Audio
-      </button>
-
-    </div>
-
-    <button class="main-btn" id="downloadBtn" type="button">
-      ↓ MULAI DOWNLOAD
+  <div class="options">
+    <button class="option active" type="button" data-format="mp4">
+      MP4 Video
     </button>
+    <button class="option" type="button" data-format="mp3">
+      MP3 Audio
+    </button>
+  </div>
 
-    <section class="status-box" id="statusBox">
+  <button class="main-btn" id="downloadBtn" type="button">
+    ↓ MULAI DOWNLOAD
+  </button>
 
-      <div class="status-top">
-        <span class="status-title" id="statusTitle">
-          Menunggu proses...
-        </span>
+  <section class="status-box" id="statusBox">
+    <div class="status-top">
+      <span class="status-title" id="statusTitle">
+        Menunggu proses...
+      </span>
+      <span class="percent" id="percent">0%</span>
+    </div>
 
-        <span class="percent" id="percent">0%</span>
-      </div>
+    <div class="progress-bg">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
 
-      <div class="progress-bg">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+    <div class="status-message" id="statusMessage">
+      Menunggu server...
+    </div>
 
-      <div class="status-message" id="statusMessage">
-        Menunggu server...
-      </div>
+    <div class="eta">
+      <span>Perkiraan sisa waktu</span>
+      <strong id="eta">Menghitung...</strong>
+    </div>
 
-      <div class="eta">
-        <span>Perkiraan sisa waktu</span>
-        <strong id="eta">Menghitung...</strong>
-      </div>
+    <div class="error" id="errorMessage"></div>
+  </section>
 
-      <div class="error" id="errorMessage"></div>
+  <section class="result" id="resultBox">
+    <strong>✓ File berhasil diproses!</strong>
+    <a
+      class="download-btn"
+      id="resultLink"
+      href="#"
+      target="_blank"
+      rel="noopener"
+    >
+      ↓ DOWNLOAD HASIL
+    </a>
+  </section>
 
-    </section>
+</main>
 
-    <section class="result" id="resultBox">
-
-      <strong>✓ File berhasil diproses!</strong>
-
-      <a
-        class="download-btn"
-        id="resultLink"
-        href="#"
-        target="_blank"
-        rel="noopener"
-      >
-        ↓ DOWNLOAD HASIL
-      </a>
-
-    </section>
-
-  </main>
-
-  <footer class="footer">
-    <strong>FBT DOWNLOADER</strong>
-    <br>
-    Video & Audio Downloader
-    <br>
-    Gunakan konten yang Anda miliki atau memiliki izin.
-  </footer>
+<footer class="footer">
+  <strong>FBT DOWNLOADER</strong>
+  <br>
+  Video & Audio Downloader
+  <br>
+  Gunakan konten yang Anda miliki atau memiliki izin.
+</footer>
 
 </div>
 
@@ -443,29 +416,24 @@ let progressRate = null;
 /* PILIH FORMAT */
 document.querySelectorAll(".option").forEach(button => {
   button.addEventListener("click", () => {
-
     document.querySelectorAll(".option").forEach(item => {
       item.classList.remove("active");
     });
 
     button.classList.add("active");
     selectedFormat = button.dataset.format;
-
   });
 });
 
 /* FORMAT WAKTU */
 function formatTime(seconds) {
-
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "Menghitung...";
   }
 
   seconds = Math.ceil(seconds);
 
-  if (seconds < 60) {
-    return seconds + " detik";
-  }
+  if (seconds < 60) return seconds + " detik";
 
   const minutes = Math.floor(seconds / 60);
   const remaining = seconds % 60;
@@ -475,39 +443,29 @@ function formatTime(seconds) {
   }
 
   const hours = Math.floor(minutes / 60);
-
   return hours + " jam " + (minutes % 60) + " menit";
 }
 
 /* UPDATE STATUS */
 function updateStatus(data) {
-
   const progress = Math.max(
     0,
     Math.min(100, Number(data.progress) || 0)
   );
 
   statusBox.style.display = "block";
-
   progressBar.style.width = progress + "%";
   percentText.textContent = progress + "%";
-
   statusMessage.textContent =
     data.message || "Proses sedang berjalan...";
 
   if (data.status === "completed") {
-
     statusTitle.textContent = "Selesai";
-
   } else if (data.status === "failed") {
-
     statusTitle.textContent = "Gagal";
-
   } else {
-
     statusTitle.innerHTML =
       '<span class="spinner"></span>Memproses video';
-
   }
 
   const now = Date.now();
@@ -517,53 +475,37 @@ function updateStatus(data) {
     progress > lastProgress &&
     lastProgressTime !== null
   ) {
-
     const difference = progress - lastProgress;
     const elapsed = (now - lastProgressTime) / 1000;
 
-    if (elapsed > 0) {
-      progressRate = difference / elapsed;
-    }
-
+    if (elapsed > 0) progressRate = difference / elapsed;
   }
 
   if (progress >= 100) {
-
     etaText.textContent = "Selesai";
-
   } else if (progressRate && progressRate > 0) {
-
     const remaining = (100 - progress) / progressRate;
     etaText.textContent = formatTime(remaining);
-
   } else if (
     lastProgressTime &&
     now - lastProgressTime > 120000
   ) {
-
     etaText.textContent = "Proses masih berjalan...";
-
   } else {
-
     etaText.textContent = "Menghitung...";
-
   }
 
   if (lastProgress === null || progress > lastProgress) {
     lastProgress = progress;
     lastProgressTime = now;
   }
-
 }
 
 /* RESET */
 function resetInterface() {
-
   statusBox.style.display = "none";
   resultBox.style.display = "none";
-
   errorMessage.textContent = "";
-
   progressBar.style.width = "0%";
   percentText.textContent = "0%";
   etaText.textContent = "Menghitung...";
@@ -571,12 +513,10 @@ function resetInterface() {
   lastProgress = null;
   lastProgressTime = null;
   progressRate = null;
-
 }
 
 /* MULAI DOWNLOAD */
 async function startDownload() {
-
   if (polling) return;
 
   const videoUrl = urlInput.value.trim();
@@ -588,19 +528,15 @@ async function startDownload() {
   }
 
   try {
-
     const parsedUrl = new URL(videoUrl);
 
     if (parsedUrl.protocol !== "https:") {
       alert("Gunakan link HTTPS yang valid.");
       return;
     }
-
   } catch {
-
     alert("Link video tidak valid.");
     return;
-
   }
 
   resetInterface();
@@ -616,36 +552,27 @@ async function startDownload() {
   const requestId = crypto.randomUUID();
 
   try {
-
     const response = await fetch(API_URL, {
-
       method: "POST",
-
       headers: {
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify({
-
         video_url: videoUrl,
         format: selectedFormat,
         resolution: "best",
         request_id: requestId
-
       })
-
     });
 
     const result = await response.json();
 
     if (!response.ok || result.success === false) {
-
       throw new Error(
         result.error ||
         result.message ||
         "Gagal mengirim permintaan ke server."
       );
-
     }
 
     const id =
@@ -656,119 +583,81 @@ async function startDownload() {
     downloadBtn.textContent = "Permintaan terkirim";
 
     await checkStatus(id);
-
   } catch (error) {
-
     showError(error.message || "Terjadi kesalahan.");
-
   } finally {
-
     polling = false;
     downloadBtn.disabled = false;
     downloadBtn.textContent = "↓ MULAI DOWNLOAD";
-
   }
-
 }
 
 /* CEK STATUS */
 async function checkStatus(id) {
-
   const startedAt = Date.now();
   const maxDuration = 60 * 60 * 1000;
 
   while (Date.now() - startedAt < maxDuration) {
-
     const response = await fetch(
-
-      API_URL +
-      "/status?id=" +
-      encodeURIComponent(id),
-
-      {
-        cache: "no-store"
-      }
-
+      API_URL + "/status?id=" + encodeURIComponent(id),
+      { cache: "no-store" }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-
       throw new Error(
         data.error ||
         data.message ||
         "Gagal membaca status server."
       );
-
     }
 
     updateStatus(data);
 
     if (data.status === "completed") {
-
       if (!data.download_url) {
         throw new Error("Link hasil download tidak ditemukan.");
       }
 
       resultLink.href = data.download_url;
-
       resultBox.style.display = "block";
-
       statusTitle.textContent = "Download selesai";
       etaText.textContent = "Selesai";
-
       return;
-
     }
 
     if (data.status === "failed") {
-
       throw new Error(
         data.message ||
         data.error ||
         "Proses download gagal."
       );
-
     }
 
     await new Promise(resolve => setTimeout(resolve, 5000));
-
   }
 
   throw new Error(
     "Waktu tunggu habis. Periksa GitHub Actions."
   );
-
 }
 
 /* ERROR */
 function showError(message) {
-
   statusBox.style.display = "block";
-
   statusTitle.textContent = "Terjadi kesalahan";
-
-  statusMessage.textContent =
-    "Proses tidak dapat dilanjutkan.";
-
+  statusMessage.textContent = "Proses tidak dapat dilanjutkan.";
   errorMessage.textContent = message;
-
   etaText.textContent = "Tidak tersedia";
-
 }
 
 /* TOMBOL */
 downloadBtn.addEventListener("click", startDownload);
 
 urlInput.addEventListener("keydown", event => {
-
-  if (event.key === "Enter") {
-    startDownload();
-  }
-
+  if (event.key === "Enter") startDownload();
 });
-
 </script>
 
 </body>
