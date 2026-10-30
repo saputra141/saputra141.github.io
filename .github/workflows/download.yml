@@ -5,25 +5,25 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "inspect atau download"
+        description: "Inspect atau download"
         required: true
         type: choice
         options:
           - inspect
           - download
       video_url:
-        description: "URL video"
+        description: "Link video"
         required: true
         type: string
       format:
-        description: "mp4 atau mp3"
+        description: "Format hasil"
         required: true
         type: choice
         options:
           - mp4
           - mp3
       resolution:
-        description: "Resolusi: best, 360, 480, 720, 1080, 1440, 2160"
+        description: "Resolusi video"
         required: true
         default: best
         type: string
@@ -31,6 +31,9 @@ on:
         description: "ID permintaan"
         required: true
         type: string
+
+permissions:
+  contents: write
 
 jobs:
   process:
@@ -42,41 +45,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          python -m pip install -U yt-dlp awscli
+          python -m pip install -U yt-dlp
 
-      - name: Configure R2
-        run: |
-          aws configure set aws_access_key_id "$R2_ACCESS_KEY_ID"
-          aws configure set aws_secret_access_key "$R2_SECRET_ACCESS_KEY"
-          aws configure set region auto
-        env:
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-
-      - name: Inspect available resolutions
+      - name: Inspect video resolutions
         if: inputs.mode == 'inspect'
-        shell: bash
         env:
           VIDEO_URL: ${{ inputs.video_url }}
           REQUEST_ID: ${{ inputs.request_id }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -e
+
           yt-dlp --dump-single-json --no-warnings "$VIDEO_URL" > info.json
 
           python - <<'PY'
           import json, os
+
           with open("info.json", encoding="utf-8") as f:
               info = json.load(f)
 
           heights = sorted({
-              x.get("height") for x in info.get("formats", [])
+              x["height"]
+              for x in info.get("formats", [])
               if x.get("height") and x.get("vcodec") != "none"
-          })
+          }, reverse=True)
 
           result = {
               "status": "completed",
+              "mode": "inspect",
               "formats": heights,
               "title": info.get("title", "Video")
           }
@@ -85,25 +82,29 @@ jobs:
               json.dump(result, f)
           PY
 
-          aws s3 cp result.json \
-            "s3://${R2_BUCKET_NAME}/jobs/${REQUEST_ID}.json" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --content-type "application/json"
+          TAG="download-${REQUEST_ID}"
+          META="$(cat result.json)"
 
-      - name: Download video
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "$META" \
+            --target main
+
+      - name: Download selected video
         if: inputs.mode == 'download'
-        shell: bash
         env:
           VIDEO_URL: ${{ inputs.video_url }}
           FORMAT: ${{ inputs.format }}
           RESOLUTION: ${{ inputs.resolution }}
-          REQUEST_ID: ${{ inputs.request_id }}
+        shell: bash
         run: |
           set -e
 
           if [ "$FORMAT" = "mp3" ]; then
             yt-dlp \
-              -x --audio-format mp3 \
+              -x \
+              --audio-format mp3 \
+              --audio-quality 0 \
               -o "output.%(ext)s" \
               "$VIDEO_URL"
           else
@@ -115,54 +116,46 @@ jobs:
 
             yt-dlp \
               -f "$SELECTOR" \
-              --merge-output-format mp4 \
+              --remux-video mp4 \
               -o "output.%(ext)s" \
               "$VIDEO_URL"
           fi
 
-          FILE=$(find . -maxdepth 1 -type f -name 'output.*' | head -n 1)
+          FILE=$(find . -maxdepth 1 -type f \
+            \( -name 'output.mp4' -o -name 'output.mp3' \) | head -n 1)
+
           test -n "$FILE"
           echo "FILE=$FILE" >> "$GITHUB_ENV"
-          echo "NAME=$(basename "$FILE")" >> "$GITHUB_ENV"
+          echo "FILENAME=$(basename "$FILE")" >> "$GITHUB_ENV"
 
-      - name: Upload video and metadata
+      - name: Publish direct MP4 or MP3 file
         if: inputs.mode == 'download'
-        shell: bash
         env:
           REQUEST_ID: ${{ inputs.request_id }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          GH_TOKEN: ${{ github.token }}
           FORMAT: ${{ inputs.format }}
+        shell: bash
         run: |
           set -e
 
-          KEY="downloads/${REQUEST_ID}/${NAME}"
-
-          aws s3 cp "$FILE" \
-            "s3://${R2_BUCKET_NAME}/${KEY}" \
-            --endpoint-url "$R2_ENDPOINT"
-
           python - <<'PY'
           import json, os
-          data = {
+
+          result = {
               "status": "completed",
-              "key": "downloads/" + os.environ["REQUEST_ID"] + "/" + os.environ["NAME"],
-              "filename": os.environ["NAME"],
-              "content_type": "audio/mpeg" if os.environ["FORMAT"] == "mp3" else "video/mp4"
+              "mode": "download",
+              "filename": os.environ["FILENAME"],
+              "format": os.environ["FORMAT"]
           }
-          with open("result.json", "w") as f:
-              json.dump(data, f)
+
+          with open("result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f)
           PY
 
-          aws s3 cp result.json \
-            "s3://${R2_BUCKET_NAME}/jobs/${REQUEST_ID}.json" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --content-type "application/json"
+          TAG="download-${REQUEST_ID}"
+          META="$(cat result.json)"
 
-      - name: Upload backup artifact
-        if: inputs.mode == 'download'
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-${{ inputs.request_id }}
-          path: output.*
-          retention-days: 1
+          gh release create "$TAG" "$FILE" \
+            --title "$TAG" \
+            --notes "$META" \
+            --target main
