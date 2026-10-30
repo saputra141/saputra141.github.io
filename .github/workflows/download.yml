@@ -1,0 +1,91 @@
+name: All-in-One Social Downloader
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Paste Instagram, Facebook, or TikTok URL"
+        required: true
+        type: string
+
+      resolution:
+        description: "Maximum video resolution"
+        required: true
+        type: choice
+        default: "1080"
+        options:
+          - "1080"
+          - "720"
+          - "480"
+          - "360"
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade yt-dlp
+
+      - name: Validate URL
+        env:
+          VIDEO_URL: ${{ inputs.video_url }}
+        run: |
+          python - <<'PY'
+          import os
+          from urllib.parse import urlparse
+
+          url = os.environ["VIDEO_URL"].strip()
+          parsed = urlparse(url)
+
+          allowed = {
+              "facebook.com",
+              "www.facebook.com",
+              "m.facebook.com",
+              "fb.watch",
+              "instagram.com",
+              "www.instagram.com",
+              "tiktok.com",
+              "www.tiktok.com",
+              "vm.tiktok.com",
+              "vt.tiktok.com"
+          }
+
+          if parsed.scheme != "https":
+              raise SystemExit("Only HTTPS links are allowed")
+
+          if parsed.hostname not in allowed:
+              raise SystemExit("Platform not supported")
+
+          print("URL accepted")
+          PY
+
+      - name: Download video
+        env:
+          VIDEO_URL: ${{ inputs.video_url }}
+          RESOLUTION: ${{ inputs.resolution }}
+        run: |
+          mkdir -p downloads
+
+          yt-dlp \
+            --no-playlist \
+            --no-warnings \
+            --merge-output-format mp4 \
+            -f "bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]" \
+            -o "downloads/%(extractor)s-%(id)s.%(ext)s" \
+            "$VIDEO_URL"
+
+      - name: Upload downloaded video
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: downloads/*
+          if-no-files-found: error
+          retention-days: 1
