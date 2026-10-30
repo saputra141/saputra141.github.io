@@ -1,405 +1,3 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#080d18">
-<title>Video Downloader</title>
-
-<style>
-:root {
-  --bg: #080d18;
-  --card: #111a2b;
-  --green: #20df83;
-  --green2: #12b96b;
-  --text: #f4f7fb;
-  --muted: #91a0b7;
-  --border: rgba(255,255,255,.09);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 25px 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  color: var(--text);
-  background:
-    radial-gradient(circle at 15% 10%, #123b36 0, transparent 32%),
-    radial-gradient(circle at 90% 90%, #172c50 0, transparent 35%),
-    var(--bg);
-}
-
-.container {
-  width: 100%;
-  max-width: 490px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.logo {
-  width: 65px;
-  height: 65px;
-  margin: auto auto 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  color: #06170e;
-  font-size: 29px;
-  font-weight: 900;
-  background: linear-gradient(135deg, #5affad, #10c875);
-  box-shadow: 0 8px 35px rgba(32,223,131,.2);
-}
-
-h1 {
-  font-size: 27px;
-  margin: 0 0 9px;
-  letter-spacing: .5px;
-}
-
-.subtitle {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.card {
-  background: rgba(17,26,43,.94);
-  border: 1px solid var(--border);
-  border-radius: 23px;
-  padding: 23px;
-  box-shadow: 0 20px 65px rgba(0,0,0,.3);
-}
-
-.label {
-  display: block;
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.input-wrap {
-  position: relative;
-}
-
-input[type="url"] {
-  width: 100%;
-  height: 54px;
-  border-radius: 13px;
-  border: 1px solid var(--border);
-  background: #091222;
-  color: white;
-  padding: 0 15px;
-  outline: none;
-  font-size: 13px;
-}
-
-input[type="url"]:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(32,223,131,.1);
-}
-
-input::placeholder {
-  color: #63738d;
-}
-
-.platforms {
-  display: flex;
-  gap: 8px;
-  margin: 13px 0 23px;
-  flex-wrap: wrap;
-}
-
-.platform {
-  font-size: 11px;
-  color: #b9c5d6;
-  background: #1a263a;
-  border: 1px solid var(--border);
-  padding: 8px 11px;
-  border-radius: 30px;
-}
-
-.format-title {
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.formats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.format-option {
-  position: relative;
-}
-
-.format-option input {
-  position: absolute;
-  opacity: 0;
-}
-
-.format-option label {
-  display: block;
-  padding: 15px;
-  border-radius: 13px;
-  text-align: center;
-  background: #091222;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.format-option input:checked + label {
-  border-color: var(--green);
-  background: rgba(32,223,131,.09);
-  color: var(--green);
-}
-
-.format-option small {
-  display: block;
-  color: var(--muted);
-  margin-top: 5px;
-  font-size: 10px;
-  font-weight: normal;
-}
-
-button {
-  width: 100%;
-  height: 53px;
-  border: none;
-  border-radius: 13px;
-  color: #04160d;
-  background: linear-gradient(135deg, #50f6a5, #14c879);
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: .2s;
-}
-
-button:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-}
-
-button:disabled {
-  opacity: .55;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.status-box {
-  display: none;
-  margin-top: 22px;
-  padding: 17px;
-  background: #091222;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-}
-
-.status-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.status-title {
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.percent {
-  color: var(--green);
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.progress-track {
-  height: 10px;
-  width: 100%;
-  background: #263248;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #13bd70, #54f6a5);
-  box-shadow: 0 0 15px rgba(32,223,131,.35);
-  transition: width .6s ease;
-}
-
-.status-message {
-  color: #b7c4d6;
-  font-size: 12px;
-  margin-top: 12px;
-  line-height: 1.5;
-}
-
-.estimate {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 15px;
-  padding-top: 13px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-}
-
-.estimate span:first-child {
-  color: var(--muted);
-}
-
-.estimate strong {
-  color: var(--green);
-  text-align: right;
-}
-
-.result {
-  display: none;
-  margin-top: 17px;
-}
-
-.result a {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  background: var(--green);
-  color: #04160d;
-  padding: 16px;
-  border-radius: 12px;
-  font-weight: 900;
-  font-size: 14px;
-}
-
-.error {
-  color: #ff8585;
-}
-
-.footer {
-  text-align: center;
-  color: #687991;
-  font-size: 11px;
-  margin-top: 22px;
-  line-height: 1.7;
-}
-
-@media(max-width:380px) {
-  .card { padding: 17px; }
-  h1 { font-size: 23px; }
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <div class="header">
-    <div class="logo">V</div>
-    <h1>VIDEO DOWNLOADER</h1>
-    <div class="subtitle">
-      Download video favorit Anda dengan mudah.<br>
-      Cepat, praktis, dan simpel.
-    </div>
-  </div>
-
-  <div class="card">
-
-    <label class="label" for="videoUrl">Masukkan link video</label>
-
-    <div class="input-wrap">
-      <input
-        type="url"
-        id="videoUrl"
-        placeholder="Tempel link Instagram, Facebook, TikTok..."
-        autocomplete="url"
-      >
-    </div>
-
-    <div class="platforms">
-      <span class="platform">Instagram</span>
-      <span class="platform">Facebook</span>
-      <span class="platform">TikTok</span>
-    </div>
-
-    <div class="format-title">Pilih format download</div>
-
-    <div class="formats">
-      <div class="format-option">
-        <input type="radio" name="format" id="mp4" value="mp4" checked>
-        <label for="mp4">
-          MP4
-          <small>Video</small>
-        </label>
-      </div>
-
-      <div class="format-option">
-        <input type="radio" name="format" id="mp3" value="mp3">
-        <label for="mp3">
-          MP3
-          <small>Audio</small>
-        </label>
-      </div>
-    </div>
-
-    <button id="downloadBtn" onclick="startDownload()">
-      DOWNLOAD SEKARANG
-    </button>
-
-    <div class="status-box" id="statusBox">
-
-      <div class="status-top">
-        <span class="status-title" id="statusTitle">Menyiapkan...</span>
-        <span class="percent" id="percent">0%</span>
-      </div>
-
-      <div class="progress-track">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-
-      <div class="status-message" id="statusMessage">
-        Menghubungkan ke server...
-      </div>
-
-      <div class="estimate">
-        <span>Perkiraan sisa waktu</span>
-        <strong id="estimate">Menghitung...</strong>
-      </div>
-
-    </div>
-
-    <div class="result" id="result">
-      <a id="downloadLink" href="#" target="_blank" rel="noopener">
-        DOWNLOAD VIDEO
-      </a>
-    </div>
-
-  </div>
-
-  <div class="footer">
-    VIDEO DOWNLOADER<br>
-    Gunakan hanya untuk video yang Anda miliki atau telah mendapat izin dari pemiliknya.
-  </div>
-
-</div>
 
 <script>
 const API = "https://video-downloader-api.koinklub.workers.dev";
@@ -410,7 +8,6 @@ let polling = false;
 let lastProgress = null;
 let lastProgressTime = null;
 let progressRate = null;
-let requestStart = null;
 
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) {
@@ -419,28 +16,19 @@ function formatTime(seconds) {
 
   seconds = Math.ceil(seconds);
 
-  if (seconds < 60) {
-    return seconds + " detik";
-  }
+  if (seconds < 60) return seconds + " detik";
 
   const minutes = Math.floor(seconds / 60);
-  const remaining = seconds % 60;
-
   if (minutes < 60) {
-    return minutes + " menit " + remaining + " detik";
+    return minutes + " menit " + (seconds % 60) + " detik";
   }
 
-  const hours = Math.floor(minutes / 60);
-  return hours + " jam " + (minutes % 60) + " menit";
+  return Math.floor(minutes / 60) + " jam " +
+    (minutes % 60) + " menit";
 }
 
 function updateEstimate(progress) {
   const now = Date.now();
-
-  if (progress >= 100) {
-    $("estimate").textContent = "Selesai";
-    return;
-  }
 
   if (lastProgress === null) {
     lastProgress = progress;
@@ -454,32 +42,28 @@ function updateEstimate(progress) {
     const gained = progress - lastProgress;
 
     if (elapsed > 0) {
-      const newRate = gained / elapsed;
-
+      const rate = gained / elapsed;
       progressRate = progressRate === null
-        ? newRate
-        : (progressRate * 0.4) + (newRate * 0.6);
+        ? rate
+        : progressRate * 0.5 + rate * 0.5;
     }
 
     lastProgress = progress;
     lastProgressTime = now;
   }
 
-  // Jangan tampilkan perkiraan jika server belum memberi
-  // perubahan progres yang cukup untuk dihitung.
-  if (
-    progressRate === null ||
-    progressRate <= 0 ||
-    (now - lastProgressTime) > 120000
+  if (progress >= 100) {
+    $("estimate").textContent = "Selesai";
+  } else if (
+    progressRate &&
+    progressRate > 0 &&
+    now - lastProgressTime < 120000
   ) {
     $("estimate").textContent =
-      "Proses masih berjalan...";
-    return;
+      formatTime((100 - progress) / progressRate);
+  } else {
+    $("estimate").textContent = "Proses masih berjalan...";
   }
-
-  const remaining = (100 - progress) / progressRate;
-
-  $("estimate").textContent = formatTime(remaining);
 }
 
 function updateProgress(data) {
@@ -490,16 +74,14 @@ function updateProgress(data) {
 
   $("progressFill").style.width = progress + "%";
   $("percent").textContent = progress + "%";
+  $("statusMessage").textContent =
+    data.message || "Sedang diproses...";
 
   $("statusTitle").textContent =
-    data.status === "completed" ? "Selesai!" :
     data.status === "uploading" ? "Mengunggah hasil..." :
     data.status === "downloading" ? "Mengunduh video..." :
     data.status === "processing" ? "Memproses video..." :
     "Sedang berjalan...";
-
-  $("statusMessage").textContent =
-    data.message || "Permintaan sedang diproses.";
 
   updateEstimate(progress);
 }
@@ -510,6 +92,12 @@ function showError(message) {
   $("statusTitle").classList.add("error");
   $("statusMessage").textContent = message;
   $("estimate").textContent = "Tidak tersedia";
+}
+
+function resetButton() {
+  polling = false;
+  $("downloadBtn").disabled = false;
+  $("downloadBtn").textContent = "DOWNLOAD SEKARANG";
 }
 
 async function startDownload() {
@@ -525,32 +113,10 @@ async function startDownload() {
     return;
   }
 
-  let parsed;
-
   try {
-    parsed = new URL(url);
+    new URL(url);
   } catch {
     alert("Link video tidak valid.");
-    return;
-  }
-
-  const host = parsed.hostname.toLowerCase();
-
-  const allowed = [
-    "facebook.com",
-    "www.facebook.com",
-    "m.facebook.com",
-    "fb.watch",
-    "instagram.com",
-    "www.instagram.com",
-    "tiktok.com",
-    "www.tiktok.com",
-    "vm.tiktok.com",
-    "vt.tiktok.com"
-  ];
-
-  if (!allowed.includes(host)) {
-    alert("Gunakan link Instagram, Facebook, atau TikTok.");
     return;
   }
 
@@ -558,7 +124,8 @@ async function startDownload() {
   lastProgress = null;
   lastProgressTime = null;
   progressRate = null;
-  requestStart = Date.now();
+
+  const requestId = crypto.randomUUID();
 
   $("downloadBtn").disabled = true;
   $("downloadBtn").textContent = "SEDANG MEMPROSES...";
@@ -579,29 +146,33 @@ async function startDownload() {
       },
       body: JSON.stringify({
         video_url: url,
-        format: format
+        format: format,
+        resolution: "best",
+        request_id: requestId
       })
     });
 
     const result = await response.json();
 
-    if (!response.ok || !result.id) {
+    if (!response.ok) {
       throw new Error(
-        result.error || result.message || "Gagal mengirim permintaan."
+        result.error || result.message || "Permintaan ditolak server."
       );
     }
 
-    await checkStatus(result.id);
+    const id = result.id || result.request_id || requestId;
+
+    await checkStatus(id);
 
   } catch (error) {
-    showError(error.message || "Koneksi ke server gagal.");
+    showError(error.message || "Koneksi server gagal.");
     resetButton();
   }
 }
 
 async function checkStatus(id) {
-  const maxDuration = 30 * 60 * 1000;
   const started = Date.now();
+  const maxDuration = 60 * 60 * 1000;
 
   while (Date.now() - started < maxDuration) {
     const response = await fetch(
@@ -612,7 +183,7 @@ async function checkStatus(id) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Gagal memeriksa status.");
+      throw new Error(data.error || "Gagal membaca status.");
     }
 
     updateProgress(data);
@@ -621,13 +192,14 @@ async function checkStatus(id) {
       $("progressFill").style.width = "100%";
       $("percent").textContent = "100%";
       $("statusTitle").textContent = "Video berhasil diproses!";
-      $("statusMessage").textContent =
-        "File sudah siap. Silakan tekan tombol download.";
+      $("statusMessage").textContent = "File siap diunduh.";
       $("estimate").textContent = "Selesai";
 
-      const link = data.download_url || (API + "/download?id=" + encodeURIComponent(id));
+      if (!data.download_url) {
+        throw new Error("Video selesai, tetapi link download belum tersedia.");
+      }
 
-      $("downloadLink").href = link;
+      $("downloadLink").href = data.download_url;
       $("result").style.display = "block";
 
       resetButton();
@@ -635,25 +207,12 @@ async function checkStatus(id) {
     }
 
     if (data.status === "failed" || data.status === "error") {
-      throw new Error(
-        data.message || "Proses download gagal."
-      );
+      throw new Error(data.message || "Proses download gagal.");
     }
 
     await new Promise(resolve => setTimeout(resolve, 5000));
   }
 
-  throw new Error(
-    "Waktu tunggu habis. Periksa GitHub Actions untuk melihat status proses."
-  );
-}
-
-function resetButton() {
-  polling = false;
-  $("downloadBtn").disabled = false;
-  $("downloadBtn").textContent = "DOWNLOAD SEKARANG";
+  throw new Error("Waktu tunggu habis. Periksa GitHub Actions.");
 }
 </script>
-
-</body>
-</html>
