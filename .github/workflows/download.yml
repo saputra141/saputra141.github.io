@@ -4,92 +4,79 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "Paste Instagram, Facebook, or TikTok URL"
+        description: "Link video"
         required: true
         type: string
-
       format:
-        description: "Choose download format"
+        description: "Format"
         required: true
         type: choice
-        default: "mp4"
         options:
-          - "mp4"
-          - "mp3"
-
-permissions:
-  contents: read
+          - mp4
+          - mp3
 
 jobs:
   download:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
-      - name: Install dependencies
+      - name: Install tools
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          python -m pip install --upgrade yt-dlp
+          python -m pip install -U yt-dlp
 
-      - name: Validate URL
+      - name: Download video
         env:
           VIDEO_URL: ${{ inputs.video_url }}
-        run: |
-          python - <<'PY'
-          import os
-          from urllib.parse import urlparse
-
-          url = os.environ["VIDEO_URL"].strip()
-          host = (urlparse(url).hostname or "").lower()
-
-          allowed = {
-              "instagram.com", "www.instagram.com",
-              "facebook.com", "www.facebook.com",
-              "m.facebook.com", "fb.watch",
-              "tiktok.com", "www.tiktok.com",
-              "vm.tiktok.com", "vt.tiktok.com"
-          }
-
-          if urlparse(url).scheme != "https" or host not in allowed:
-              raise SystemExit("Unsupported URL")
-
-          print("URL accepted")
-          PY
-
-      - name: Download MP4
-        if: inputs.format == 'mp4'
-        env:
-          VIDEO_URL: ${{ inputs.video_url }}
+          FORMAT: ${{ inputs.format }}
         run: |
           mkdir -p downloads
 
-          yt-dlp \
-            --no-playlist \
-            --merge-output-format mp4 \
-            -f "bestvideo+bestaudio/best" \
-            -o "downloads/%(extractor)s-%(id)s.%(ext)s" \
-            "$VIDEO_URL"
+          if [ "$FORMAT" = "mp3" ]; then
+            yt-dlp \
+              --no-playlist \
+              -x --audio-format mp3 \
+              -o "downloads/%(title).80s.%(ext)s" \
+              "$VIDEO_URL"
+          else
+            yt-dlp \
+              --no-playlist \
+              -f "bv*+ba/b" \
+              --merge-output-format mp4 \
+              -o "downloads/%(title).80s.%(ext)s" \
+              "$VIDEO_URL"
+          fi
 
-      - name: Download MP3
-        if: inputs.format == 'mp3'
+      - name: Upload to Cloudflare R2
         env:
-          VIDEO_URL: ${{ inputs.video_url }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
         run: |
-          mkdir -p downloads
+          python -m pip install awscli
 
-          yt-dlp \
-            --no-playlist \
-            -x \
-            --audio-format mp3 \
-            --audio-quality 0 \
-            -o "downloads/%(extractor)s-%(id)s.%(ext)s" \
-            "$VIDEO_URL"
+          FILE=$(find downloads -maxdepth 1 -type f | head -n 1)
 
-      - name: Upload result
+          if [ -z "$FILE" ]; then
+            echo "File hasil download tidak ditemukan"
+            exit 1
+          fi
+
+          NAME=$(basename "$FILE")
+          KEY="downloads/${GITHUB_RUN_ID}/${NAME}"
+
+          aws s3 cp "$FILE" "s3://${R2_BUCKET}/${KEY}" \
+            --endpoint-url "$R2_ENDPOINT"
+
+          echo "UPLOAD BERHASIL"
+          echo "OBJECT_KEY=$KEY"
+
+      - name: Upload backup artifact
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-${{ inputs.format }}
-          path: downloads/*
-          if-no-files-found: error
+          name: hasil-download
+          path: downloads/
           retention-days: 1
