@@ -1,15 +1,14 @@
-
 name: Download Video
 
 on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "Link video"
+        description: "URL video"
         required: true
         type: string
       format:
-        description: "Format hasil"
+        description: "Format"
         required: true
         type: choice
         options:
@@ -17,11 +16,11 @@ on:
           - mp3
       resolution:
         description: "Resolusi"
-        required: true
+        required: false
+        default: "best"
         type: string
-        default: best
       request_id:
-        description: "ID permintaan"
+        description: "Request ID"
         required: true
         type: string
 
@@ -34,122 +33,113 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg jq pipx
-          pipx install yt-dlp
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          sudo apt-get install -y ffmpeg jq
+          python -m pip install --upgrade yt-dlp
 
-      - name: Prepare
-        env:
-          REQUEST_ID: ${{ inputs.request_id }}
+      - name: Prepare request
+        shell: bash
         run: |
-          echo "TAG=download-${REQUEST_ID}" >> "$GITHUB_ENV"
+          echo "TAG=download-${{ inputs.request_id }}" >> "$GITHUB_ENV"
+          echo "FORMAT=${{ inputs.format }}" >> "$GITHUB_ENV"
+          echo "VIDEO_URL=${{ inputs.video_url }}" >> "$GITHUB_ENV"
+          echo "RESOLUTION=${{ inputs.resolution }}" >> "$GITHUB_ENV"
 
-      - name: Create published status release
+      - name: Remove old release and tag
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: download-${{ inputs.request_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "$TAG" --yes || true
+          git push origin --delete "$TAG" || true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NOTES='{"status":"queued","progress":5,"message":"Permintaan diterima"}'
-
           gh release create "$TAG" \
-            --title "$TAG" \
-            --notes "$NOTES" \
-            --target "$GITHUB_SHA"
+            --title "Download ${{ inputs.request_id }}" \
+            --notes "$NOTES"
 
-      - name: Download and publish file
-        shell: bash
+      - name: Update processing
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: download-${{ inputs.request_id }}
-          VIDEO_URL: ${{ inputs.video_url }}
-          FORMAT: ${{ inputs.format }}
-          RESOLUTION: ${{ inputs.resolution }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -Eeuo pipefail
+          gh release edit "$TAG" \
+            --notes '{"status":"processing","progress":10,"message":"Memulai proses"}'
 
-          update_status() {
-            NOTES=$(jq -nc \
-              --arg status "$1" \
-              --argjson progress "$2" \
-              --arg message "$3" \
-              '{status:$status,progress:$progress,message:$message}')
-
-            gh release edit "$TAG" --notes "$NOTES"
-          }
-
-          fail_status() {
-            CODE=$?
-            if [ "$CODE" -ne 0 ]; then
-              NOTES=$(jq -nc \
-                '{status:"failed",progress:0,message:"Download gagal. Periksa log GitHub Actions."}')
-              gh release edit "$TAG" --notes "$NOTES" || true
-            fi
-            exit "$CODE"
-          }
-
-          trap fail_status EXIT
-
-          update_status "processing" 10 "Menyiapkan proses video"
+      - name: Download video
+        shell: bash
+        run: |
+          mkdir -p output
 
           if [ "$FORMAT" = "mp3" ]; then
-            update_status "downloading" 20 "Mengunduh audio"
-
             yt-dlp \
               -x \
               --audio-format mp3 \
-              --no-playlist \
-              --newline \
-              -o "output.%(ext)s" \
+              -o "output/%(title).80s.%(ext)s" \
               "$VIDEO_URL"
           else
-            update_status "downloading" 20 "Mengunduh video"
-
             if [ "$RESOLUTION" = "best" ]; then
               SELECTOR="bv*+ba/b"
             else
-              SELECTOR="bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]"
+              SELECTOR="bv*[height<=${RESOLUTION}]+ba/b"
             fi
 
             yt-dlp \
               -f "$SELECTOR" \
               --merge-output-format mp4 \
-              --no-playlist \
-              --newline \
-              -o "output.%(ext)s" \
+              -o "output/%(title).80s.%(ext)s" \
               "$VIDEO_URL"
           fi
 
-          FILE=$(find . -maxdepth 1 -type f \
-            \( -name "output.mp4" \
-            -o -name "output.mp3" \
-            -o -name "output.mkv" \
-            -o -name "output.webm" \) | head -n 1)
+      - name: Update uploading
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "$TAG" \
+            --notes '{"status":"uploading","progress":80,"message":"Mengunggah hasil"}'
+
+      - name: Upload result
+        id: upload
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          FILE=$(find output -type f | head -n 1)
 
           if [ -z "$FILE" ]; then
             echo "File hasil tidak ditemukan"
             exit 1
           fi
 
-          update_status "uploading" 80 "Mengunggah file ke GitHub"
-
           gh release upload "$TAG" "$FILE"
 
           FILE_NAME=$(basename "$FILE")
-
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE_NAME}"
 
-          NOTES=$(jq -nc \
-            --arg download_url "$DOWNLOAD_URL" \
-            '{status:"completed",progress:100,message:"File siap diunduh",download_url:$download_url}')
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_ENV"
 
-          gh release edit "$TAG" --notes "$NOTES"
+      - name: Update completed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          jq -n \
+            --arg url "$DOWNLOAD_URL" \
+            '{status:"completed",progress:100,message:"Selesai",download_url:$url}' \
+            > status.json
 
-          trap - EXIT
+          gh release edit "$TAG" --notes-file status.json
 
-          echo "Download selesai: $DOWNLOAD_URL"
+      - name: Mark failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "$TAG" \
+            --notes '{"status":"failed","progress":0,"message":"Download gagal"}' || true
