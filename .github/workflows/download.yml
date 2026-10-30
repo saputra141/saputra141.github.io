@@ -8,17 +8,6 @@ on:
         required: true
         type: string
 
-      resolution:
-        description: "Choose maximum resolution"
-        required: true
-        type: choice
-        default: "1080"
-        options:
-          - "1080"
-          - "720"
-          - "480"
-          - "360"
-
 permissions:
   contents: read
 
@@ -59,47 +48,28 @@ jobs:
           }
 
           if urlparse(url).scheme != "https" or host not in allowed:
-              raise SystemExit("Unsupported or invalid URL")
+              raise SystemExit("Unsupported URL")
 
           print("URL accepted")
           PY
 
-      - name: Download video
+      - name: Download highest quality
         env:
           VIDEO_URL: ${{ inputs.video_url }}
-          RESOLUTION: ${{ inputs.resolution }}
         run: |
-          mkdir -p source downloads
+          mkdir -p downloads
 
           yt-dlp \
             --no-playlist \
             --merge-output-format mp4 \
-            -f "best[height<=${RESOLUTION}]/best" \
-            -o "source/video.%(ext)s" \
+            -f "bestvideo+bestaudio/best" \
+            -o "downloads/%(extractor)s-%(id)s.%(ext)s" \
             "$VIDEO_URL"
-
-          FILE=$(find source -maxdepth 1 -type f | head -n 1)
-
-          if [ -z "$FILE" ]; then
-            echo "Video not found"
-            exit 1
-          fi
-
-          ffmpeg -y -i "$FILE" \
-            -vf "scale=-2:'min(ih,${RESOLUTION})'" \
-            -c:v libx264 \
-            -preset veryfast \
-            -crf 23 \
-            -c:a aac \
-            -movflags +faststart \
-            downloads/video.mp4
-
-          echo "Download and conversion completed"
 
       - name: Upload video
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-video
-          path: downloads/video.mp4
+          name: highest-quality-video
+          path: downloads/*
           if-no-files-found: error
           retention-days: 1
