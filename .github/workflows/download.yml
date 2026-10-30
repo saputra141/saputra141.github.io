@@ -8,18 +8,21 @@ on:
         description: "URL video"
         required: true
         type: string
+
       format:
-        description: "Format"
+        description: "Format download"
         required: true
         type: choice
         options:
           - mp4
           - mp3
+
       resolution:
-        description: "Resolusi"
+        description: "Resolusi video"
         required: false
         default: "best"
         type: string
+
       request_id:
         description: "Request ID"
         required: true
@@ -34,30 +37,37 @@ jobs:
     timeout-minutes: 60
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install tools
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg jq
           python -m pip install --upgrade yt-dlp
 
-      - name: Prepare
-        shell: bash
+      - name: Prepare variables
+        env:
+          INPUT_URL: ${{ inputs.video_url }}
+          INPUT_FORMAT: ${{ inputs.format }}
+          INPUT_RESOLUTION: ${{ inputs.resolution }}
+          INPUT_ID: ${{ inputs.request_id }}
         run: |
-          echo "TAG=download-${{ inputs.request_id }}" >> "$GITHUB_ENV"
-          echo "FORMAT=${{ inputs.format }}" >> "$GITHUB_ENV"
-          echo "VIDEO_URL=${{ inputs.video_url }}" >> "$GITHUB_ENV"
+          echo "TAG=download-${INPUT_ID}" >> "$GITHUB_ENV"
+          echo "VIDEO_URL=${INPUT_URL}" >> "$GITHUB_ENV"
+          echo "FORMAT=${INPUT_FORMAT}" >> "$GITHUB_ENV"
+          echo "RESOLUTION=${INPUT_RESOLUTION}" >> "$GITHUB_ENV"
 
-      - name: Remove old release
+      - name: Remove previous release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete "$TAG" --yes || true
           git push origin --delete "$TAG" || true
+          git tag -d "$TAG" || true
 
       - name: Create release
         env:
@@ -67,93 +77,160 @@ jobs:
             --title "Video Download" \
             --notes '{"status":"queued","progress":5,"message":"Permintaan diterima"}'
 
-      - name: Update processing
+      - name: Update processing status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release edit "$TAG" \
-            --notes '{"status":"processing","progress":20,"message":"Sedang mengunduh video"}'
+            --notes '{"status":"processing","progress":15,"message":"Sedang memproses video"}'
 
       - name: Download MP4
         if: inputs.format == 'mp4'
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [[ "$RESOLUTION" == "best" ]]; then
+            SELECTOR="bv*+ba/b"
+          else
+            SELECTOR="bv*[height<=${RESOLUTION}]+ba/b"
+          fi
+
           yt-dlp \
-            -f "bv*+ba/b" \
+            --no-playlist \
+            -f "$SELECTOR" \
             --merge-output-format mp4 \
+            --recode-video mp4 \
             -o "hasil.%(ext)s" \
             "$VIDEO_URL"
 
-          FILE=$(find . -maxdepth 1 -type f \
-            \( -name "hasil.mp4" -o -name "hasil.mkv" -o -name "hasil.webm" \) \
-            | head -n 1)
-
-          if [ -z "$FILE" ]; then
-            echo "File video tidak ditemukan"
+          if [ ! -f "hasil.mp4" ]; then
+            echo "File hasil.mp4 tidak ditemukan"
+            find . -maxdepth 1 -type f
             exit 1
           fi
 
-          if [ "$FILE" != "hasil.mp4" ]; then
-            ffmpeg -y -i "$FILE" -c copy hasil.mp4
-            rm -f "$FILE"
-          fi
+          ls -lh hasil.mp4
 
       - name: Download MP3
         if: inputs.format == 'mp3'
+        shell: bash
         run: |
+          set -euo pipefail
+
           yt-dlp \
+            --no-playlist \
             -x \
             --audio-format mp3 \
             --audio-quality 0 \
             -o "hasil.%(ext)s" \
             "$VIDEO_URL"
 
-          test -f hasil.mp3
+          if [ ! -f "hasil.mp3" ]; then
+            echo "File hasil.mp3 tidak ditemukan"
+            find . -maxdepth 1 -type f
+            exit 1
+          fi
 
-      - name: Update uploading
+          ls -lh hasil.mp3
+
+      - name: Update uploading status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release edit "$TAG" \
-            --notes '{"status":"uploading","progress":80,"message":"Mengunggah file"}'
+            --notes '{"status":"uploading","progress":80,"message":"Mengunggah hasil download"}'
 
       - name: Upload result
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [ "$FORMAT" = "mp4" ]; then
+            FILE="hasil.mp4"
+          elif [ "$FORMAT" = "mp3" ]; then
+            FILE="hasil.mp3"
+          else
+            echo "Format tidak dikenal"
+            exit 1
+          fi
+
+          if [ ! -f "$FILE" ]; then
+            echo "File tidak ditemukan: $FILE"
+            exit 1
+          fi
+
+          gh release upload "$TAG" "$FILE" --clobber
+
+          echo "Upload berhasil:"
+          gh release view "$TAG" --json assets
+
+      - name: Verify uploaded file
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
           if [ "$FORMAT" = "mp4" ]; then
             FILE="hasil.mp4"
           else
             FILE="hasil.mp3"
           fi
 
-          test -f "$FILE"
-          gh release upload "$TAG" "$FILE" --clobber
+          echo "Memeriksa aset GitHub Release..."
 
-      - name: Verify uploaded asset
+          ASSETS=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+
+          echo "$ASSETS"
+
+          if ! echo "$ASSETS" | grep -Fxq "$FILE"; then
+            echo "File $FILE belum ditemukan di Release"
+            exit 1
+          fi
+
+          echo "File berhasil diverifikasi"
+
+      - name: Mark completed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "$TAG" --json assets > assets.json
-
           if [ "$FORMAT" = "mp4" ]; then
             FILE="hasil.mp4"
           else
             FILE="hasil.mp3"
           fi
 
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
 
           jq -n \
-            --arg url "$URL" \
-            '{status:"completed",progress:100,message:"File siap diunduh!",download_url:$url}' \
-            > status.json
+            --arg url "$DOWNLOAD_URL" \
+            '{
+              status: "completed",
+              progress: 100,
+              message: "File siap diunduh!",
+              download_url: $url
+            }' > status.json
 
           gh release edit "$TAG" --notes-file status.json
+
+          echo "DOWNLOAD URL:"
+          echo "$DOWNLOAD_URL"
 
       - name: Mark failed
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          gh release edit "$TAG" \
-            --notes '{"status":"failed","progress":0,"message":"Download gagal"}' || true
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            jq -n '{
+              status: "failed",
+              progress: 0,
+              message: "Download gagal. Periksa GitHub Actions."
+            }' > failed.json
+
+            gh release edit "$TAG" --notes-file failed.json || true
+          fi
