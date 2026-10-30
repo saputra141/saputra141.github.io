@@ -34,6 +34,9 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install tools
         run: |
           sudo apt-get update
@@ -41,7 +44,6 @@ jobs:
           pipx install yt-dlp
 
       - name: Prepare
-        shell: bash
         env:
           REQUEST_ID: ${{ inputs.request_id }}
         run: |
@@ -70,7 +72,6 @@ jobs:
           RESOLUTION: ${{ inputs.resolution }}
         run: |
           set -Eeuo pipefail
-
           export PATH="$HOME/.local/bin:$PATH"
 
           update_status() {
@@ -87,7 +88,7 @@ jobs:
             CODE=$?
             if [ "$CODE" -ne 0 ]; then
               NOTES=$(jq -nc \
-                '{status:"failed",progress:0,message:"Proses gagal. Periksa GitHub Actions."}')
+                '{status:"failed",progress:0,message:"Download gagal. Periksa log GitHub Actions."}')
               gh release edit "$TAG" --notes "$NOTES" || true
             fi
             exit "$CODE"
@@ -127,8 +128,7 @@ jobs:
             \( -name "output.mp4" \
             -o -name "output.mp3" \
             -o -name "output.mkv" \
-            -o -name "output.webm" \) \
-            | head -n 1)
+            -o -name "output.webm" \) | head -n 1)
 
           if [ -z "$FILE" ]; then
             echo "File hasil tidak ditemukan"
@@ -139,15 +139,13 @@ jobs:
 
           gh release upload "$TAG" "$FILE"
 
-          update_status "publishing" 95 "Menyiapkan link unduhan"
-
           FILE_NAME=$(basename "$FILE")
 
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE_NAME}"
 
           NOTES=$(jq -nc \
-            --arg url "$DOWNLOAD_URL" \
-            '{status:"completed",progress:100,message:"File siap diunduh",download_url:$url}')
+            --arg download_url "$DOWNLOAD_URL" \
+            '{status:"completed",progress:100,message:"File siap diunduh",download_url:$download_url}')
 
           gh release edit "$TAG" \
             --draft=false \
@@ -155,5 +153,4 @@ jobs:
 
           trap - EXIT
 
-          echo "DOWNLOAD BERHASIL"
-          echo "$DOWNLOAD_URL"
+          echo "Download selesai: $DOWNLOAD_URL"
