@@ -1,39 +1,162 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Downloader</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#101827;
+  color:white;
+  font-family:Arial,sans-serif
+}
+.container{
+  width:100%;
+  max-width:430px;
+  padding:25px;
+  background:#1e293b;
+  border-radius:18px
+}
+h1{text-align:center}
+p{text-align:center;color:#cbd5e1}
+input[type=url]{
+  width:100%;
+  padding:15px;
+  margin:12px 0;
+  border:0;
+  border-radius:9px;
+  font-size:15px
+}
+.options{
+  display:flex;
+  gap:25px;
+  margin:18px 0
+}
+.options label{cursor:pointer}
+button{
+  width:100%;
+  padding:15px;
+  background:#2563eb;
+  color:white;
+  border:0;
+  border-radius:9px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer
+}
+button:disabled{opacity:.6}
+#status{
+  margin-top:18px;
+  text-align:center;
+  color:#facc15;
+  font-size:14px;
+  overflow-wrap:anywhere
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Video Downloader</h1>
+  <p>Instagram • Facebook • TikTok</p>
+
+  <input
+    type="url"
+    id="videoUrl"
+    placeholder="Tempel link video di sini"
+  >
+
+  <div class="options">
+    <label>
+      <input type="radio" name="format" value="mp4" checked>
+      MP4 Video
+    </label>
+    <label>
+      <input type="radio" name="format" value="mp3">
+      MP3 Audio
+    </label>
+  </div>
+
+  <button id="downloadButton" onclick="downloadVideo()">
+    DOWNLOAD
+  </button>
+
+  <div id="status">
+    Masukkan link video dan pilih format.
+  </div>
+</div>
+
 <script>
-const WORKER_URL = "GANTI_DENGAN_URL_WORKER_CLOUDFLARE";
+const WORKER_URL =
+  "https://video-downloader-api.koinklub.workers.dev/";
 
-async function downloadVideo() {
+async function downloadVideo(){
   const url = document.getElementById("videoUrl").value.trim();
-  const format = document.querySelector('input[name="format"]:checked').value;
+  const format = document.querySelector(
+    'input[name="format"]:checked'
+  ).value;
   const status = document.getElementById("status");
+  const button = document.getElementById("downloadButton");
 
-  if (!url) {
+  if(!url){
     status.textContent = "Masukkan link video terlebih dahulu.";
     return;
   }
 
-  status.textContent = "Mengirim permintaan download...";
+  try{
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
 
-  try {
-    const response = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        video_url: url,
-        format: format
+    const allowed = [
+      "instagram.com","www.instagram.com",
+      "facebook.com","www.facebook.com","fb.watch",
+      "tiktok.com","www.tiktok.com","vm.tiktok.com"
+    ];
+
+    if(!allowed.includes(host)){
+      status.textContent = "Platform atau link tidak didukung.";
+      return;
+    }
+  }catch(e){
+    status.textContent = "Link tidak valid.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Mengirim permintaan ke server...";
+
+  try{
+    const response = await fetch(WORKER_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        video_url:url,
+        format:format
       })
     });
 
     const result = await response.json();
 
-    if (!response.ok) {
+    if(!response.ok){
       throw new Error(result.error || "Permintaan gagal.");
     }
 
     status.textContent =
-      "Permintaan berhasil dikirim! Periksa GitHub Actions untuk hasilnya.";
-  } catch (error) {
+      "Permintaan berhasil dikirim! Buka GitHub Actions untuk memeriksa proses dan hasil download.";
+
+  }catch(error){
     status.textContent = "Gagal: " + error.message;
+  }finally{
+    button.disabled = false;
   }
 }
 </script>
+</body>
+</html>
