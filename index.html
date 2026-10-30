@@ -1,124 +1,39 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Downloader</title>
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#101827;
-  color:white;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px
-}
-.container{
-  width:100%;
-  max-width:430px;
-  background:#1e293b;
-  padding:25px;
-  border-radius:18px
-}
-h1{text-align:center;margin-top:0}
-p{text-align:center;color:#cbd5e1}
-input{
-  width:100%;
-  padding:15px;
-  margin:12px 0;
-  border:0;
-  border-radius:9px;
-  font-size:15px
-}
-.options{
-  display:flex;
-  gap:20px;
-  margin:18px 0
-}
-.options label{cursor:pointer}
-button{
-  width:100%;
-  padding:15px;
-  background:#2563eb;
-  color:white;
-  border:0;
-  border-radius:9px;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer
-}
-#status{
-  margin-top:18px;
-  text-align:center;
-  color:#facc15;
-  font-size:14px
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>Video Downloader</h1>
-  <p>Instagram • Facebook • TikTok</p>
-
-  <input
-    type="url"
-    id="videoUrl"
-    placeholder="Tempel link video di sini"
-  >
-
-  <div class="options">
-    <label>
-      <input type="radio" name="format" value="mp4" checked>
-      MP4 Video
-    </label>
-    <label>
-      <input type="radio" name="format" value="mp3">
-      MP3 Audio
-    </label>
-  </div>
-
-  <button onclick="downloadVideo()">Download</button>
-  <div id="status">Pilih format dan masukkan link video.</div>
-</div>
 
 <script>
-function downloadVideo(){
+const WORKER_URL = "GANTI_DENGAN_URL_WORKER_CLOUDFLARE";
+
+async function downloadVideo() {
   const url = document.getElementById("videoUrl").value.trim();
   const format = document.querySelector('input[name="format"]:checked').value;
   const status = document.getElementById("status");
 
-  if(!url){
+  if (!url) {
     status.textContent = "Masukkan link video terlebih dahulu.";
     return;
   }
 
-  let valid = false;
-  try{
-    const host = new URL(url).hostname.toLowerCase();
-    valid = [
-      "instagram.com",
-      "www.instagram.com",
-      "facebook.com",
-      "www.facebook.com",
-      "fb.watch",
-      "tiktok.com",
-      "www.tiktok.com",
-      "vm.tiktok.com"
-    ].includes(host);
-  }catch(e){}
+  status.textContent = "Mengirim permintaan download...";
 
-  if(!valid){
-    status.textContent = "Link tidak valid atau platform belum didukung.";
-    return;
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        video_url: url,
+        format: format
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Permintaan gagal.");
+    }
+
+    status.textContent =
+      "Permintaan berhasil dikirim! Periksa GitHub Actions untuk hasilnya.";
+  } catch (error) {
+    status.textContent = "Gagal: " + error.message;
   }
-
-  status.textContent =
-    "Tampilan website sudah siap. Backend downloader belum terhubung.";
 }
 </script>
-</body>
-</html>
