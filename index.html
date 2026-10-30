@@ -14,6 +14,11 @@
 <!-- GOOGLE ADSENSE VERIFICATION -->
 <meta name="google-adsense-account" content="ca-pub-7629758385452727">
 
+<!-- GOOGLE ADSENSE SCRIPT -->
+<script async
+src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7629758385452727"
+crossorigin="anonymous"></script>
+
 <style>
 :root {
   --bg: #080d18;
@@ -383,6 +388,12 @@ h1 {
   Video & Audio Downloader
   <br>
   Gunakan konten yang Anda miliki atau memiliki izin.
+  <br>
+  <a href="privacy.html" style="color:#20df83">Kebijakan Privasi</a>
+  |
+  <a href="about.html" style="color:#20df83">Tentang Kami</a>
+  |
+  <a href="contact.html" style="color:#20df83">Kontak</a>
 </footer>
 
 </div>
@@ -390,11 +401,9 @@ h1 {
 <script>
 "use strict";
 
-/* KONFIGURASI API */
 const API_URL =
   "https://video-downloader-api.koinklub.workers.dev";
 
-/* ELEMEN WEBSITE */
 const urlInput = document.getElementById("videoUrl");
 const downloadBtn = document.getElementById("downloadBtn");
 const statusBox = document.getElementById("statusBox");
@@ -413,7 +422,6 @@ let lastProgress = null;
 let lastProgressTime = null;
 let progressRate = null;
 
-/* PILIH FORMAT */
 document.querySelectorAll(".option").forEach(button => {
   button.addEventListener("click", () => {
     document.querySelectorAll(".option").forEach(item => {
@@ -425,7 +433,6 @@ document.querySelectorAll(".option").forEach(button => {
   });
 });
 
-/* FORMAT WAKTU */
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "Menghitung...";
@@ -446,7 +453,6 @@ function formatTime(seconds) {
   return hours + " jam " + (minutes % 60) + " menit";
 }
 
-/* UPDATE STATUS */
 function updateStatus(data) {
   const progress = Math.max(
     0,
@@ -486,11 +492,6 @@ function updateStatus(data) {
   } else if (progressRate && progressRate > 0) {
     const remaining = (100 - progress) / progressRate;
     etaText.textContent = formatTime(remaining);
-  } else if (
-    lastProgressTime &&
-    now - lastProgressTime > 120000
-  ) {
-    etaText.textContent = "Proses masih berjalan...";
   } else {
     etaText.textContent = "Menghitung...";
   }
@@ -501,7 +502,6 @@ function updateStatus(data) {
   }
 }
 
-/* RESET */
 function resetInterface() {
   statusBox.style.display = "none";
   resultBox.style.display = "none";
@@ -515,7 +515,6 @@ function resetInterface() {
   progressRate = null;
 }
 
-/* MULAI DOWNLOAD */
 async function startDownload() {
   if (polling) return;
 
@@ -592,7 +591,6 @@ async function startDownload() {
   }
 }
 
-/* CEK STATUS */
 async function checkStatus(id) {
   const startedAt = Date.now();
   const maxDuration = 60 * 60 * 1000;
@@ -643,7 +641,6 @@ async function checkStatus(id) {
   );
 }
 
-/* ERROR */
 function showError(message) {
   statusBox.style.display = "block";
   statusTitle.textContent = "Terjadi kesalahan";
@@ -652,7 +649,6 @@ function showError(message) {
   etaText.textContent = "Tidak tersedia";
 }
 
-/* TOMBOL */
 downloadBtn.addEventListener("click", startDownload);
 
 urlInput.addEventListener("keydown", event => {
