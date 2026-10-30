@@ -9,7 +9,7 @@ on:
         type: string
 
       resolution:
-        description: "Maximum video resolution"
+        description: "Choose maximum resolution"
         required: true
         type: choice
         default: "1080"
@@ -43,26 +43,23 @@ jobs:
           from urllib.parse import urlparse
 
           url = os.environ["VIDEO_URL"].strip()
-          parsed = urlparse(url)
+          host = (urlparse(url).hostname or "").lower()
 
           allowed = {
+              "instagram.com",
+              "www.instagram.com",
               "facebook.com",
               "www.facebook.com",
               "m.facebook.com",
               "fb.watch",
-              "instagram.com",
-              "www.instagram.com",
               "tiktok.com",
               "www.tiktok.com",
               "vm.tiktok.com",
               "vt.tiktok.com"
           }
 
-          if parsed.scheme != "https":
-              raise SystemExit("Only HTTPS links are allowed")
-
-          if parsed.hostname not in allowed:
-              raise SystemExit("Platform not supported")
+          if urlparse(url).scheme != "https" or host not in allowed:
+              raise SystemExit("Unsupported or invalid URL")
 
           print("URL accepted")
           PY
@@ -72,20 +69,37 @@ jobs:
           VIDEO_URL: ${{ inputs.video_url }}
           RESOLUTION: ${{ inputs.resolution }}
         run: |
-          mkdir -p downloads
+          mkdir -p source downloads
 
           yt-dlp \
             --no-playlist \
-            --no-warnings \
             --merge-output-format mp4 \
-            -f "bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]" \
-            -o "downloads/%(extractor)s-%(id)s.%(ext)s" \
+            -f "best[height<=${RESOLUTION}]/best" \
+            -o "source/video.%(ext)s" \
             "$VIDEO_URL"
 
-      - name: Upload downloaded video
+          FILE=$(find source -maxdepth 1 -type f | head -n 1)
+
+          if [ -z "$FILE" ]; then
+            echo "Video not found"
+            exit 1
+          fi
+
+          ffmpeg -y -i "$FILE" \
+            -vf "scale=-2:'min(ih,${RESOLUTION})'" \
+            -c:v libx264 \
+            -preset veryfast \
+            -crf 23 \
+            -c:a aac \
+            -movflags +faststart \
+            downloads/video.mp4
+
+          echo "Download and conversion completed"
+
+      - name: Upload video
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-video
-          path: downloads/*
+          path: downloads/video.mp4
           if-no-files-found: error
           retention-days: 1
