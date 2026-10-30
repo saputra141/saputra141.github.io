@@ -5,6 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FBT Downloader">
 
 <title>FBT DOWNLOADER - Video & Audio Downloader</title>
 
@@ -12,10 +15,8 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://saputra141.github.io/video-downloader/">
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="FBT DOWNLOADER - Video & Audio Downloader">
-<meta property="og:description" content="Alat bantu pemrosesan tautan video dan audio dengan tampilan sederhana.">
-<meta property="og:url" content="https://saputra141.github.io/video-downloader/">
+<!-- PWA MANIFEST -->
+<link rel="manifest" href="/video-downloader/manifest.json">
 
 <!-- GOOGLE ADSENSE VERIFICATION -->
 <meta name="google-adsense-account" content="ca-pub-7629758385452727">
@@ -739,17 +740,11 @@ function updateStatus(data) {
     data.message || "Proses sedang berjalan...";
 
   if (data.status === "completed") {
-
     statusTitle.textContent = "Selesai";
-
   } else if (data.status === "failed") {
-
     statusTitle.textContent = "Gagal";
-
   } else {
-
     statusTitle.textContent = "Memproses video";
-
   }
 
   const now = Date.now();
@@ -761,7 +756,6 @@ function updateStatus(data) {
   ) {
 
     const difference = progress - lastProgress;
-
     const elapsed = (now - lastProgressTime) / 1000;
 
     if (elapsed > 0) {
@@ -771,27 +765,18 @@ function updateStatus(data) {
   }
 
   if (progress >= 100 || data.status === "completed") {
-
     etaText.textContent = "Selesai";
-
   } else if (progressRate && progressRate > 0) {
-
     etaText.textContent = formatTime(
       (100 - progress) / progressRate
     );
-
   } else {
-
     etaText.textContent = "Menghitung...";
-
   }
 
   if (lastProgress === null || progress > lastProgress) {
-
     lastProgress = progress;
-
     lastProgressTime = now;
-
   }
 
 }
@@ -800,23 +785,17 @@ function updateStatus(data) {
 function resetInterface() {
 
   statusBox.style.display = "none";
-
   resultBox.style.display = "none";
-
   errorMessage.textContent = "";
-
   progressBar.style.width = "0%";
 
   progressTrack.setAttribute("aria-valuenow", "0");
 
   percentText.textContent = "0%";
-
   etaText.textContent = "Menghitung...";
 
   lastProgress = null;
-
   lastProgressTime = null;
-
   progressRate = null;
 
 }
@@ -847,37 +826,25 @@ async function startDownload() {
   const videoUrl = urlInput.value.trim();
 
   if (!videoUrl) {
-
     alert("Masukkan link video terlebih dahulu.");
-
     urlInput.focus();
-
     return;
-
   }
 
   if (!isHttpsUrl(videoUrl)) {
-
     alert("Masukkan tautan HTTPS yang valid.");
-
     urlInput.focus();
-
     return;
-
   }
 
   resetInterface();
 
   polling = true;
-
   downloadBtn.disabled = true;
-
   downloadBtn.textContent = "Mengirim permintaan...";
 
   statusBox.style.display = "block";
-
   statusTitle.textContent = "Menghubungkan server";
-
   statusMessage.textContent = "Mengirim permintaan download...";
 
   const requestId = crypto.randomUUID
@@ -898,11 +865,8 @@ async function startDownload() {
       body: JSON.stringify({
 
         video_url: videoUrl,
-
         format: selectedFormat,
-
         resolution: "best",
-
         request_id: requestId
 
       })
@@ -912,13 +876,11 @@ async function startDownload() {
     const result = await readJson(response);
 
     if (!response.ok || result.success === false) {
-
       throw new Error(
         result.error ||
         result.message ||
         "Gagal mengirim permintaan ke server."
       );
-
     }
 
     const id =
@@ -940,9 +902,7 @@ async function startDownload() {
   } finally {
 
     polling = false;
-
     downloadBtn.disabled = false;
-
     downloadBtn.textContent = "↓ MULAI DOWNLOAD";
 
   }
@@ -953,7 +913,6 @@ async function startDownload() {
 async function checkStatus(id) {
 
   const startedAt = Date.now();
-
   const maxDuration = 60 * 60 * 1000;
 
   while (Date.now() - startedAt < maxDuration) {
@@ -973,13 +932,11 @@ async function checkStatus(id) {
     const data = await readJson(response);
 
     if (!response.ok) {
-
       throw new Error(
         data.error ||
         data.message ||
         "Gagal membaca status server."
       );
-
     }
 
     updateStatus(data);
@@ -990,19 +947,14 @@ async function checkStatus(id) {
         !data.download_url ||
         !isHttpsUrl(data.download_url)
       ) {
-
         throw new Error(
           "Tautan hasil download tidak tersedia atau tidak valid."
         );
-
       }
 
       resultLink.href = data.download_url;
-
       resultBox.style.display = "block";
-
       statusTitle.textContent = "Download selesai";
-
       etaText.textContent = "Selesai";
 
       return;
@@ -1010,13 +962,11 @@ async function checkStatus(id) {
     }
 
     if (data.status === "failed") {
-
       throw new Error(
         data.message ||
         data.error ||
         "Proses download gagal."
       );
-
     }
 
     await new Promise(resolve => {
@@ -1035,14 +985,12 @@ async function checkStatus(id) {
 function showError(message) {
 
   statusBox.style.display = "block";
-
   statusTitle.textContent = "Terjadi kesalahan";
 
   statusMessage.textContent =
     "Proses tidak dapat dilanjutkan.";
 
   errorMessage.textContent = message;
-
   etaText.textContent = "Tidak tersedia";
 
 }
@@ -1058,6 +1006,21 @@ urlInput.addEventListener("keydown", event => {
 
 });
 
+/* DAFTARKAN PWA SERVICE WORKER */
+if ("serviceWorker" in navigator) {
+
+  window.addEventListener("load", () => {
+
+    navigator.serviceWorker.register(
+      "/video-downloader/service-worker.js",
+      { scope: "/video-downloader/" }
+    ).catch(error => {
+      console.error("Service Worker gagal:", error);
+    });
+
+  });
+
+}
 </script>
 
 </body>
