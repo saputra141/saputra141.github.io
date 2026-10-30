@@ -1,3 +1,4 @@
+
 name: All-in-One Social Downloader
 
 on:
@@ -88,4 +89,4 @@ jobs:
           name: downloaded-video
           path: downloads/*
           if-no-files-found: error
-          retenti
+          retention-days: 1
