@@ -34,6 +34,11 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install tools
         run: |
           sudo apt-get update
@@ -46,7 +51,6 @@ jobs:
           echo "TAG=download-${{ inputs.request_id }}" >> "$GITHUB_ENV"
           echo "FORMAT=${{ inputs.format }}" >> "$GITHUB_ENV"
           echo "VIDEO_URL=${{ inputs.video_url }}" >> "$GITHUB_ENV"
-          echo "RESOLUTION=${{ inputs.resolution }}" >> "$GITHUB_ENV"
 
       - name: Remove old release
         env:
@@ -63,7 +67,7 @@ jobs:
             --title "Video Download" \
             --notes '{"status":"queued","progress":5,"message":"Permintaan diterima"}'
 
-      - name: Update status
+      - name: Update processing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -88,8 +92,10 @@ jobs:
             exit 1
           fi
 
-          ffmpeg -y -i "$FILE" -c copy hasil.mp4
-          rm -f "$FILE"
+          if [ "$FILE" != "hasil.mp4" ]; then
+            ffmpeg -y -i "$FILE" -c copy hasil.mp4
+            rm -f "$FILE"
+          fi
 
       - name: Download MP3
         if: inputs.format == 'mp3'
@@ -121,11 +127,9 @@ jobs:
           fi
 
           test -f "$FILE"
-
           gh release upload "$TAG" "$FILE" --clobber
 
       - name: Verify uploaded asset
-        id: verify
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -137,25 +141,10 @@ jobs:
             FILE="hasil.mp3"
           fi
 
-          URL=$(jq -r --arg file "$FILE" \
-            '.assets[] | select(.name == $file) | .url' assets.json)
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
 
-          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
-            echo "Asset tidak ditemukan di Release"
-            cat assets.json
-            exit 1
-          fi
-
-          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
-
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_ENV"
-
-      - name: Mark completed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
           jq -n \
-            --arg url "$DOWNLOAD_URL" \
+            --arg url "$URL" \
             '{status:"completed",progress:100,message:"File siap diunduh!",download_url:$url}' \
             > status.json
 
