@@ -2,215 +2,133 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Downloader</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      color: white;
-      background: linear-gradient(145deg, #071b3a, #123d72);
-    }
-    .container {
-      width: 100%;
-      max-width: 440px;
-      padding: 28px 22px;
-      border-radius: 18px;
-      background: #102b50;
-      box-shadow: 0 12px 35px #0005;
-    }
-    h1 { text-align: center; margin: 0 0 8px; }
-    .subtitle {
-      text-align: center;
-      color: #b9cce5;
-      margin-bottom: 28px;
-    }
-    input[type="url"] {
-      width: 100%;
-      padding: 15px;
-      border: 1px solid #54749b;
-      border-radius: 10px;
-      background: #071b32;
-      color: white;
-      font-size: 15px;
-      outline: none;
-    }
-    .formats {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin: 22px 0;
-    }
-    button, .download-link {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      border: 0;
-      border-radius: 10px;
-      background: #1687f8;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-    #status {
-      margin-top: 18px;
-      text-align: center;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-      color: #d6e7ff;
-    }
-    #downloadArea { margin-top: 18px; }
-    .download-link { background: #16a36a; }
-    .small {
-      color: #9fb7d3;
-      font-size: 12px;
-      text-align: center;
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Downloader</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#071426;color:white;font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{width:100%;max-width:430px;background:#10243d;padding:28px 22px;border-radius:18px;box-shadow:0 10px 35px #0005}
+h1{text-align:center;margin:0 0 8px;font-size:27px}
+.sub{text-align:center;color:#a9bdd4;margin-bottom:28px}
+input[type=url]{width:100%;padding:16px;border:1px solid #49617c;border-radius:10px;background:#071426;color:white;font-size:15px;outline:none}
+.formats{display:flex;gap:25px;justify-content:center;margin:22px 0}
+.formats label{cursor:pointer}
+button{width:100%;padding:16px;border:0;border-radius:10px;background:#1685ef;color:white;font-size:16px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+#status{text-align:center;margin-top:20px;line-height:1.5;color:#d6e5f5;overflow-wrap:anywhere}
+#status a{color:#55c5ff}
+</style>
 </head>
 <body>
-  <main class="container">
-    <h1>Video Downloader</h1>
-    <div class="subtitle">Instagram • Facebook • TikTok</div>
+<div class="container">
+<h1>Video Downloader</h1>
+<div class="sub">Instagram • Facebook • TikTok</div>
 
-    <form id="downloadForm">
-      <input
-        id="videoUrl"
-        type="url"
-        placeholder="Tempel link video di sini"
-        required
-      >
+<input id="videoUrl" type="url" placeholder="Tempel link video di sini">
 
-      <div class="formats">
-        <label><input type="radio" name="format" value="mp4" checked> MP4 Video</label>
-        <label><input type="radio" name="format" value="mp3"> MP3 Audio</label>
-      </div>
+<div class="formats">
+<label><input type="radio" name="format" value="mp4" checked> MP4 Video</label>
+<label><input type="radio" name="format" value="mp3"> MP3 Audio</label>
+</div>
 
-      <button id="submitButton" type="submit">DOWNLOAD</button>
-    </form>
+<button id="downloadBtn" onclick="startDownload()">DOWNLOAD</button>
+<div id="status"></div>
+</div>
 
-    <div id="status" role="status"></div>
-    <div id="downloadArea"></div>
+<script>
+const API = "https://video-downloader-api.koinklub.workers.dev/";
 
-    <div class="small">
-      Unduh hanya konten yang kamu miliki atau sudah mendapat izin pemiliknya.
-    </div>
-  </main>
+const button = document.getElementById("downloadBtn");
+const statusBox = document.getElementById("status");
+const urlInput = document.getElementById("videoUrl");
 
-  <script>
-    const API = "https://video-downloader-api.koinklub.workers.dev";
+function wait(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
 
-    const form = document.getElementById("downloadForm");
-    const button = document.getElementById("submitButton");
-    const statusBox = document.getElementById("status");
-    const downloadArea = document.getElementById("downloadArea");
+async function startDownload(){
+  const videoUrl = urlInput.value.trim();
+  const format = document.querySelector('input[name="format"]:checked').value;
 
-    function showStatus(message) {
-      statusBox.textContent = message;
-    }
+  if(!videoUrl){
+    statusBox.textContent = "Masukkan link video terlebih dahulu.";
+    return;
+  }
 
-    function showDownload(id) {
-      const link = document.createElement("a");
-      link.className = "download-link";
-      link.href = `${API}/download?id=${encodeURIComponent(id)}`;
-      link.textContent = "DOWNLOAD VIDEO";
-      link.setAttribute("download", "");
+  button.disabled = true;
+  button.textContent = "MEMPROSES...";
+  statusBox.textContent = "Mengirim permintaan download...";
 
-      downloadArea.replaceChildren(link);
-    }
-
-    async function checkStatus(id) {
-      const started = Date.now();
-
-      while (Date.now() - started < 30 * 60 * 1000) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        try {
-          const response = await fetch(
-            `${API}/status?id=${encodeURIComponent(id)}`
-          );
-
-          if (!response.ok) {
-            throw new Error("Gagal memeriksa status.");
-          }
-
-          const result = await response.json();
-
-          if (result.status === "completed") {
-            showStatus("Video selesai diproses!");
-            showDownload(id);
-            button.disabled = false;
-            button.textContent = "DOWNLOAD LAGI";
-            return;
-          }
-
-          showStatus("Sedang memproses video... Mohon tunggu.");
-        } catch (error) {
-          showStatus(error.message);
-          button.disabled = false;
-          button.textContent = "COBA LAGI";
-          return;
-        }
-      }
-
-      showStatus("Waktu tunggu habis. Periksa GitHub Actions.");
-      button.disabled = false;
-      button.textContent = "COBA LAGI";
-    }
-
-    form.addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const videoUrl = document.getElementById("videoUrl").value.trim();
-      const format = document.querySelector(
-        'input[name="format"]:checked'
-      ).value;
-
-      button.disabled = true;
-      button.textContent = "MENGIRIM...";
-      downloadArea.replaceChildren();
-      showStatus("Mengirim permintaan...");
-
-      try {
-        const response = await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            video_url: videoUrl,
-            format: format
-          })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.success || !result.id) {
-          throw new Error(result.error || "Permintaan gagal dikirim.");
-        }
-
-        showStatus("Permintaan diterima. Sedang memproses video...");
-        await checkStatus(result.id);
-
-      } catch (error) {
-        showStatus("Gagal: " + error.message);
-        button.disabled = false;
-        button.textContent = "COBA LAGI";
-      }
+  try{
+    const response = await fetch(API,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        video_url:videoUrl,
+        format:format
+      })
     });
-  </script>
+
+    const data = await response.json();
+
+    if(!response.ok || !data.success || !data.id){
+      throw new Error(data.error || "Gagal mengirim permintaan.");
+    }
+
+    statusBox.textContent = "Video sedang diproses. Mohon tunggu...";
+
+    const id = data.id;
+    const deadline = Date.now() + 30 * 60 * 1000;
+
+    while(Date.now() < deadline){
+      await wait(5000);
+
+      const check = await fetch(
+        API + "status?id=" + encodeURIComponent(id),
+        {cache:"no-store"}
+      );
+
+      if(!check.ok) continue;
+
+      const result = await check.json();
+
+      if(result.status === "completed"){
+        statusBox.textContent = "Download selesai! Mengunduh file...";
+
+        const downloadUrl = API + "download?id=" + encodeURIComponent(id);
+
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        statusBox.innerHTML =
+          'Jika download tidak otomatis dimulai, <a href="' +
+          downloadUrl +
+          '">tekan di sini untuk mengunduh</a>.';
+
+        return;
+      }
+
+      if(result.status === "failed"){
+        throw new Error(result.error || "Video gagal diproses.");
+      }
+
+      statusBox.textContent = "Video sedang diproses. Mohon tunggu...";
+    }
+
+    throw new Error("Waktu proses terlalu lama. Silakan coba lagi.");
+
+  }catch(error){
+    statusBox.textContent = "Gagal: " + error.message;
+  }finally{
+    button.disabled = false;
+    button.textContent = "DOWNLOAD";
+  }
+}
+</script>
 </body>
 </html>
