@@ -1,0 +1,61 @@
+
+name: Auto Delete Old Releases
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete releases older than 24 hours
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking old FBT Downloader releases..."
+
+          OLD_RELEASES=$(gh release list \
+            --repo "$GH_REPO" \
+            --limit 1000 \
+            --json tagName,publishedAt,isDraft \
+            --jq '
+              .[]
+              | select(.tagName | startswith("download-"))
+              | select(.isDraft == false)
+              | select(.publishedAt != null)
+              | select(
+                  (now - (.publishedAt | fromdateiso8601)) >= 86400
+                )
+              | .tagName
+            ')
+
+          if [ -z "$OLD_RELEASES" ]; then
+            echo "No releases older than 24 hours."
+            exit 0
+          fi
+
+          while IFS= read -r TAG; do
+            [ -z "$TAG" ] && continue
+
+            echo "Deleting release: $TAG"
+
+            gh release delete "$TAG" \
+              --repo "$GH_REPO" \
+              --yes \
+              --cleanup-tag
+
+            echo "Deleted successfully: $TAG"
+          done <<< "$OLD_RELEASES"
+
+          echo "Cleanup completed."
