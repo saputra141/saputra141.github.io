@@ -51,7 +51,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg jq
-          python -m pip install --upgrade yt-dlp
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade "yt-dlp[default,curl-cffi]"
+          python -m yt_dlp --version
 
       - name: Prepare variables
         shell: bash
@@ -129,7 +131,7 @@ jobs:
             SELECTOR="bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]/b"
           fi
 
-          yt-dlp \
+          python -m yt_dlp \
             --no-playlist \
             --retries 3 \
             --fragment-retries 3 \
@@ -154,7 +156,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          yt-dlp \
+          python -m yt_dlp \
             --no-playlist \
             --retries 3 \
             --fragment-retries 3 \
