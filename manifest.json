@@ -30,21 +30,21 @@
   "screenshots": [
     {
       "src": "Screenshots/Screenshot1.jpg",
-      "sizes": "540x1170",
+      "sizes": "1440x3088",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Tampilan Utama FBT Downloader"
     },
     {
       "src": "Screenshots/Screenshot2.jpg",
-      "sizes": "540x1170",
+      "sizes": "1440x3088",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Proses Memproses Video"
     },
     {
       "src": "Screenshots/Screenshot3.jpg",
-      "sizes": "540x1170",
+      "sizes": "1440x3088",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Preview Hasil Download"
