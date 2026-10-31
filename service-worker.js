@@ -1,12 +1,14 @@
-
 const CACHE_NAME = "fbt-downloader-v2";
 
 const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/launchericon-192x192.png",
-  "/launchericon-512x512.png"
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./launchericon-192x192.png",
+  "./launchericon-512x512.png",
+  "./Screenshots/Screenshot1.jpg",
+  "./Screenshots/Screenshot2.jpg",
+  "./Screenshots/Screenshot3.jpg"
 ];
 
 self.addEventListener("install", event => {
@@ -37,8 +39,10 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request)
-    )
+    fetch(event.request)
+      .then(response => {
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
