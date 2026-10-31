@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,15 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d18">
 
-<!-- GOOGLE ADSENSE -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7629758385452727" crossorigin="anonymous"></script>
 
 <title>FBT DOWNLOADER - Universal Video Downloader</title>
 <meta name="description" content="FBT Downloader membantu mengunduh video dari berbagai situs yang didukung.">
 <meta name="robots" content="index, follow">
+<link rel="canonical" href="https://saputra141.github.io/">
 
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/launchericon-512x512.png">
+<link rel="manifest" href="https://saputra141.github.io/manifest.json">
+<link rel="icon" href="https://saputra141.github.io/launchericon-512x512.png">
 
 <style>
 :root{
@@ -236,6 +235,8 @@ Universal Video Downloader
 
 <script>
 const API_URL = "https://video-downloader-api.koinklub.workers.dev";
+const SITE_URL = "https://saputra141.github.io";
+
 const $ = id => document.getElementById(id);
 
 let pollTimer = null;
@@ -398,7 +399,7 @@ $("progressText").textContent="100%";
 $("progressStage").textContent="Selesai";
 
 const downloadPage=
-"/download.html?url="+encodeURIComponent(parsed.href);
+SITE_URL+"/download.html?url="+encodeURIComponent(parsed.href);
 
 $("downloadLink").href=downloadPage;
 
@@ -424,7 +425,6 @@ block:"center"
 });
 }
 
-/* SERVICE WORKER ALAMAT BARU */
 if("serviceWorker" in navigator){
 window.addEventListener("load",async()=>{
 try{
@@ -437,7 +437,7 @@ await registration.unregister();
 }
 
 await navigator.serviceWorker.register(
-"/service-worker.js",
+SITE_URL+"/service-worker.js",
 {scope:"/"}
 );
 
