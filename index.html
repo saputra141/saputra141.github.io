@@ -2,14 +2,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <!-- GOOGLE ADSENSE -->
-<script async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7629758385452727"
-  crossorigin="anonymous">
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d18">
+
+<!-- GOOGLE ADSENSE -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7629758385452727" crossorigin="anonymous"></script>
 
 <title>FBT DOWNLOADER - Universal Video Downloader</title>
 <meta name="description" content="FBT Downloader membantu mengunduh video dari berbagai situs yang didukung.">
@@ -19,856 +17,422 @@
 <link rel="icon" href="/video-downloader/launchericon-512x512.png">
 
 <style>
-:root {
-  --bg: #080d18;
-  --card: #111a2b;
-  --card2: #172338;
-  --green: #20df83;
-  --green2: #12b96b;
-  --text: #f5f8ff;
-  --muted: #91a0b8;
-  --border: rgba(255,255,255,.08);
-  --red: #ff6464;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  background:
-    radial-gradient(circle at 50% -10%, #173c3a 0, transparent 35%),
-    var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  min-height: 100vh;
-  padding-bottom: 90px;
-}
-
-button, input, select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-.app {
-  width: 100%;
-  max-width: 520px;
-  margin: auto;
-  padding: 18px 17px 25px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 27px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.logo {
-  width: 46px;
-  height: 46px;
-  border-radius: 15px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(145deg, #27f19a, #078b55);
-  color: #04150e;
-  font-size: 21px;
-  font-weight: 950;
-  box-shadow: 0 5px 25px #20df8340;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.brand-name {
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: .5px;
-}
-
-.brand-sub {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
-}
-
-.online {
-  font-size: 11px;
-  color: var(--green);
-  background: #20df8315;
-  border: 1px solid #20df8335;
-  padding: 7px 10px;
-  border-radius: 30px;
-}
-
-.hero {
-  text-align: center;
-  margin: 32px 0 25px;
-}
-
-.hero h1 {
-  font-size: 29px;
-  line-height: 1.2;
-  margin: 0 0 12px;
-  font-weight: 900;
-}
-
-.hero h1 span {
-  color: var(--green);
-}
-
-.hero p {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-  margin: auto;
-  max-width: 330px;
-}
-
-.card {
-  background: linear-gradient(150deg, #152238, #101827);
-  border: 1px solid var(--border);
-  border-radius: 23px;
-  padding: 19px;
-  box-shadow: 0 15px 40px #00000025;
-  margin-bottom: 17px;
-}
-
-.label {
-  display: block;
-  font-size: 12px;
-  font-weight: 750;
-  margin-bottom: 10px;
-  color: #dbe5f5;
-}
-
-.url-box {
-  position: relative;
-}
-
-.url-input {
-  width: 100%;
-  height: 54px;
-  border: 1px solid #ffffff18;
-  border-radius: 14px;
-  background: #080f1d;
-  color: white;
-  padding: 0 14px;
-  outline: none;
-  font-size: 13px;
-}
-
-.url-input:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px #20df8318;
-}
-
-.url-input::placeholder {
-  color: #66758d;
-}
-
-.platform-title {
-  margin: 20px 0 10px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.platforms {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 7px;
-}
-
-.platform {
-  text-align: center;
-  padding: 12px 3px;
-  background: #0a1321;
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  font-size: 10px;
-  color: #cbd5e5;
-  transition: .2s;
-}
-
-.platform .symbol {
-  display: block;
-  font-size: 20px;
-  margin-bottom: 6px;
-}
-
-.platform:hover {
-  border-color: var(--green);
-  transform: translateY(-2px);
-}
-
-.options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 11px;
-  margin-top: 20px;
-}
-
-select {
-  width: 100%;
-  height: 47px;
-  border-radius: 12px;
-  background: #080f1d;
-  border: 1px solid var(--border);
-  color: white;
-  padding: 0 10px;
-  outline: none;
-  font-size: 13px;
-}
-
-.main-btn {
-  width: 100%;
-  height: 54px;
-  margin-top: 19px;
-  border: 0;
-  border-radius: 15px;
-  background: linear-gradient(110deg, var(--green), var(--green2));
-  color: #03170d;
-  font-weight: 900;
-  font-size: 15px;
-  box-shadow: 0 8px 24px #20df8330;
-  transition: .2s;
-}
-
-.main-btn:active {
-  transform: scale(.97);
-}
-
-.main-btn:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
-.status-card {
-  display: none;
-  animation: appear .35s ease;
-}
-
-@keyframes appear {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.status-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.spinner {
-  width: 22px;
-  height: 22px;
-  border: 3px solid #ffffff20;
-  border-top-color: var(--green);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.status-message {
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.status-detail {
-  color: var(--muted);
-  font-size: 11px;
-  margin-top: 4px;
-}
-
-.progress-track {
-  height: 9px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #080f1d;
-  margin: 17px 0 9px;
-}
-
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #0dbb6c, #4affae);
-  transition: width .5s ease;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.result-card {
-  display: none;
-  animation: appear .4s ease;
-}
-
-.result-card h3 {
-  font-size: 17px;
-  margin: 0 0 7px;
-}
-
-.success {
-  color: var(--green);
-  font-size: 13px;
-  margin-bottom: 15px;
-}
-
-video {
-  width: 100%;
-  max-height: 340px;
-  background: #000;
-  border-radius: 14px;
-  display: block;
-  margin-bottom: 15px;
-}
-
-.download-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 50px;
-  border-radius: 14px;
-  text-decoration: none;
-  background: var(--green);
-  color: #03170d;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.note {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.7;
-  margin-top: 12px;
-}
-
-.error {
-  color: var(--red);
-}
-
-.section-title {
-  font-size: 15px;
-  font-weight: 850;
-  margin: 26px 0 12px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.info-item {
-  padding: 15px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-}
-
-.info-icon {
-  font-size: 21px;
-  margin-bottom: 9px;
-}
-
-.info-item strong {
-  font-size: 12px;
-  display: block;
-}
-
-.info-item p {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.6;
-  margin-bottom: 0;
-}
-
-.faq {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 14px;
-  margin-bottom: 9px;
-  border: 1px solid var(--border);
-}
-
-.faq strong {
-  font-size: 12px;
-}
-
-.faq p {
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--muted);
-  margin-bottom: 0;
-}
-
-.footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.8;
-  margin-top: 28px;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  max-width: 520px;
-  margin: auto;
-  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  background: #101a2bf2;
-  backdrop-filter: blur(18px);
-  border: 1px solid #ffffff12;
-  border-bottom: 0;
-  border-radius: 18px 18px 0 0;
-}
-
-.nav-item {
-  text-align: center;
-  color: #8391a9;
-  font-size: 10px;
-  text-decoration: none;
-  padding: 4px;
-}
-
-.nav-item span {
-  display: block;
-  font-size: 19px;
-  margin-bottom: 4px;
-}
-
-.nav-item.active {
-  color: var(--green);
-}
-
-.hidden {
-  display: none !important;
-}
-
-@media (min-width: 600px) {
-  body {
-    padding-top: 20px;
-  }
-}
+:root{
+--bg:#080d18;--card:#111a2b;--green:#20df83;
+--green2:#12b96b;--text:#f5f8ff;--muted:#91a0b8;
+--border:rgba(255,255,255,.08);--red:#ff6464
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+margin:0;background:radial-gradient(circle at 50% -10%,#173c3a 0,transparent 35%),var(--bg);
+color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+min-height:100vh;padding-bottom:90px
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{width:100%;max-width:520px;margin:auto;padding:18px 17px 25px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:27px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{
+width:46px;height:46px;border-radius:15px;display:grid;place-items:center;
+background:linear-gradient(145deg,#27f19a,#078b55);color:#04150e;
+font-size:21px;font-weight:950;box-shadow:0 5px 25px #20df8340;
+animation:float 3s ease-in-out infinite
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.brand-name{font-size:17px;font-weight:900;letter-spacing:.5px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.online{font-size:11px;color:var(--green);background:#20df8315;border:1px solid #20df8335;padding:7px 10px;border-radius:30px}
+.hero{text-align:center;margin:32px 0 25px}
+.hero h1{font-size:29px;line-height:1.2;margin:0 0 12px;font-weight:900}
+.hero h1 span{color:var(--green)}
+.hero p{color:var(--muted);font-size:13px;line-height:1.7;margin:auto;max-width:330px}
+.card{
+background:linear-gradient(150deg,#152238,#101827);border:1px solid var(--border);
+border-radius:23px;padding:19px;box-shadow:0 15px 40px #00000025;margin-bottom:17px
+}
+.label{display:block;font-size:12px;font-weight:750;margin-bottom:10px;color:#dbe5f5}
+.url-input{
+width:100%;height:54px;border:1px solid #ffffff18;border-radius:14px;
+background:#080f1d;color:white;padding:0 14px;outline:none;font-size:13px
+}
+.url-input:focus{border-color:var(--green);box-shadow:0 0 0 3px #20df8318}
+.url-input::placeholder{color:#66758d}
+.platform-title{margin:20px 0 10px;color:var(--muted);font-size:11px}
+.platforms{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.platform{text-align:center;padding:12px 3px;background:#0a1321;border:1px solid var(--border);border-radius:13px;font-size:10px;color:#cbd5e5}
+.symbol{display:block;font-size:20px;margin-bottom:6px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:20px}
+select{width:100%;height:47px;border-radius:12px;background:#080f1d;border:1px solid var(--border);color:white;padding:0 10px;outline:none;font-size:13px}
+.main-btn{
+width:100%;height:54px;margin-top:19px;border:0;border-radius:15px;
+background:linear-gradient(110deg,var(--green),var(--green2));color:#03170d;
+font-weight:900;font-size:15px;box-shadow:0 8px 24px #20df8330
+}
+.main-btn:disabled{opacity:.6;cursor:wait}
+.status-card,.result-card{display:none;animation:appear .35s ease}
+@keyframes appear{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.status-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.spinner{width:22px;height:22px;border:3px solid #ffffff20;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-message{font-size:13px;font-weight:750}
+.status-detail{color:var(--muted);font-size:11px;margin-top:4px}
+.progress-track{height:9px;border-radius:20px;overflow:hidden;background:#080f1d;margin:17px 0 9px}
+.progress-fill{height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#0dbb6c,#4affae);transition:width .5s ease}
+.progress-info{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}
+.result-card h3{font-size:17px;margin:0 0 7px}
+.success{color:var(--green);font-size:13px;margin-bottom:15px}
+video{width:100%;max-height:340px;background:#000;border-radius:14px;display:block;margin-bottom:15px}
+.download-btn{
+display:flex;justify-content:center;align-items:center;width:100%;min-height:50px;
+border-radius:14px;text-decoration:none;background:var(--green);color:#03170d;
+font-size:14px;font-weight:900
+}
+.note{color:var(--muted);font-size:11px;line-height:1.7;margin-top:12px}
+.error{color:var(--red)}
+.section-title{font-size:15px;font-weight:850;margin:26px 0 12px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-item{padding:15px;background:var(--card);border:1px solid var(--border);border-radius:16px}
+.info-icon{font-size:21px;margin-bottom:9px}
+.info-item strong{font-size:12px;display:block}
+.info-item p{color:var(--muted);font-size:11px;line-height:1.6;margin-bottom:0}
+.faq{background:var(--card);padding:15px;border-radius:14px;margin-bottom:9px;border:1px solid var(--border)}
+.faq strong{font-size:12px}
+.faq p{font-size:11px;line-height:1.6;color:var(--muted);margin-bottom:0}
+.footer{text-align:center;color:var(--muted);font-size:10px;line-height:1.8;margin-top:28px}
+.bottom-nav{
+position:fixed;bottom:0;left:0;right:0;z-index:10;max-width:520px;margin:auto;
+padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+display:grid;grid-template-columns:repeat(4,1fr);background:#101a2bf2;
+backdrop-filter:blur(18px);border:1px solid #ffffff12;border-bottom:0;border-radius:18px 18px 0 0
+}
+.nav-item{text-align:center;color:#8391a9;font-size:10px;text-decoration:none;padding:4px}
+.nav-item span{display:block;font-size:19px;margin-bottom:4px}
+.nav-item.active{color:var(--green)}
+@media(min-width:600px){body{padding-top:20px}}
 </style>
 </head>
 
 <body>
-
 <main class="app" id="home">
 
 <header class="header">
-  <div class="brand">
-    <div class="logo">FBT</div>
-    <div>
-      <div class="brand-name">FBT DOWNLOADER</div>
-      <div class="brand-sub">Universal Video Downloader</div>
-    </div>
-  </div>
-  <div class="online">● ONLINE</div>
+<div class="brand">
+<div class="logo">FBT</div>
+<div>
+<div class="brand-name">FBT DOWNLOADER</div>
+<div class="brand-sub">Universal Video Downloader</div>
+</div>
+</div>
+<div class="online">● ONLINE</div>
 </header>
 
 <section class="hero">
-  <h1>Download Video<br><span>Dari Mana Saja</span></h1>
-  <p>Masukkan tautan video dari situs yang didukung. Proses, lihat preview, lalu unduh.</p>
+<h1>Download Video<br><span>Dari Mana Saja</span></h1>
+<p>Masukkan tautan video dari situs yang didukung. Proses, lihat preview, lalu unduh.</p>
 </section>
 
 <section class="card">
-  <label class="label" for="videoUrl">Tempel tautan video</label>
+<label class="label" for="videoUrl">Tempel tautan video</label>
+<input class="url-input" id="videoUrl" type="url" placeholder="https://tempel-link-video-di-sini" autocomplete="url">
 
-  <div class="url-box">
-    <input
-      class="url-input"
-      id="videoUrl"
-      type="url"
-      placeholder="https://tempel-link-video-di-sini"
-      autocomplete="url"
-    >
-  </div>
+<div class="platform-title">COBA DARI PLATFORM INI</div>
+<div class="platforms">
+<div class="platform"><span class="symbol">📘</span>Facebook</div>
+<div class="platform"><span class="symbol">📸</span>Instagram</div>
+<div class="platform"><span class="symbol">♪</span>TikTok</div>
+<div class="platform"><span class="symbol">▶️</span>YouTube</div>
+<div class="platform"><span class="symbol">𝕏</span>X</div>
+</div>
 
-  <div class="platform-title">COBA DARI PLATFORM INI</div>
+<div class="options">
+<div>
+<label class="label" for="format">Format</label>
+<select id="format">
+<option value="mp4">MP4 - Video</option>
+<option value="mp3">MP3 - Audio</option>
+</select>
+</div>
+<div>
+<label class="label" for="resolution">Resolusi</label>
+<select id="resolution">
+<option value="best">Otomatis / Terbaik</option>
+<option value="360">360p</option>
+<option value="480">480p</option>
+<option value="720">720p</option>
+<option value="1080">1080p</option>
+<option value="1440">1440p</option>
+<option value="2160">2160p / 4K</option>
+</select>
+</div>
+</div>
 
-  <div class="platforms">
-    <div class="platform"><span class="symbol">📘</span>Facebook</div>
-    <div class="platform"><span class="symbol">📸</span>Instagram</div>
-    <div class="platform"><span class="symbol">♪</span>TikTok</div>
-    <div class="platform"><span class="symbol">▶️</span>YouTube</div>
-    <div class="platform"><span class="symbol">𝕏</span>X</div>
-  </div>
-
-  <div class="options">
-    <div>
-      <label class="label" for="format">Format</label>
-      <select id="format">
-        <option value="mp4">MP4 - Video</option>
-        <option value="mp3">MP3 - Audio</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="label" for="resolution">Resolusi</label>
-      <select id="resolution">
-        <option value="best">Otomatis / Terbaik</option>
-        <option value="360">360p</option>
-        <option value="480">480p</option>
-        <option value="720">720p</option>
-        <option value="1080">1080p</option>
-        <option value="1440">1440p</option>
-        <option value="2160">2160p / 4K</option>
-      </select>
-    </div>
-  </div>
-
-  <button class="main-btn" id="downloadBtn" onclick="startDownload()">
-    ↓ &nbsp; PROSES VIDEO
-  </button>
-
-  <div class="note">
-    Gunakan tautan video yang dapat diakses dan pastikan kamu memiliki izin untuk mengunduhnya.
-  </div>
+<button class="main-btn" id="processBtn" onclick="startDownload()">↓ &nbsp; PROSES VIDEO</button>
+<div class="note">Gunakan tautan video yang dapat diakses dan pastikan kamu memiliki izin untuk mengunduhnya.</div>
 </section>
 
 <section class="card status-card" id="statusCard">
-  <div class="status-head">
-    <div class="spinner" id="spinner"></div>
-    <div>
-      <div class="status-message" id="statusMessage">Menyiapkan permintaan...</div>
-      <div class="status-detail" id="statusDetail">Menghubungi server</div>
-    </div>
-  </div>
-
-  <div class="progress-track">
-    <div class="progress-fill" id="progressFill"></div>
-  </div>
-
-  <div class="progress-info">
-    <span id="progressText">0%</span>
-    <span id="progressStage">Menunggu</span>
-  </div>
+<div class="status-head">
+<div class="spinner" id="spinner"></div>
+<div>
+<div class="status-message" id="statusMessage">Menyiapkan permintaan...</div>
+<div class="status-detail" id="statusDetail">Menghubungi server</div>
+</div>
+</div>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-info">
+<span id="progressText">0%</span>
+<span id="progressStage">Menunggu</span>
+</div>
 </section>
 
 <section class="card result-card" id="resultCard">
-  <h3>Preview hasil video</h3>
-  <div class="success">✓ Pemrosesan selesai. Periksa video sebelum mengunduh.</div>
+<h3>Preview hasil video</h3>
+<div class="success">✓ Pemrosesan selesai. File sudah siap.</div>
+<video id="videoPreview" controls playsinline preload="metadata"></video>
 
-  <video id="videoPreview" controls playsinline preload="metadata"></video>
+<a id="downloadLink" class="download-btn" href="#">
+↓ &nbsp; AMBIL HASIL DOWNLOAD
+</a>
 
-  <a id="downloadLink" class="download-btn" href="#" target="_blank" rel="noopener">
-    ↓ &nbsp; UNDUH HASIL
-  </a>
-
-  <p class="note">
-    Jika preview tidak dapat diputar di browser, gunakan tombol unduh untuk membuka file hasil.
-  </p>
+<p class="note">
+Tekan tombol di atas untuk membuka halaman pengambilan hasil. GitHub Actions tidak akan dijalankan ulang.
+</p>
 </section>
 
 <div class="section-title" id="features">Fitur FBT Downloader</div>
-
 <div class="info-grid">
-  <div class="info-item">
-    <div class="info-icon">🌐</div>
-    <strong>Multi Platform</strong>
-    <p>Mencoba berbagai situs yang didukung mesin downloader.</p>
-  </div>
-
-  <div class="info-item">
-    <div class="info-icon">🎬</div>
-    <strong>Video Preview</strong>
-    <p>Periksa hasil video sebelum mengunduh.</p>
-  </div>
-
-  <div class="info-item">
-    <div class="info-icon">⚡</div>
-    <strong>Proses Otomatis</strong>
-    <p>Permintaan diproses melalui server cloud.</p>
-  </div>
-
-  <div class="info-item">
-    <div class="info-icon">🎵</div>
-    <strong>MP4 dan MP3</strong>
-    <p>Pilih format video atau audio sesuai kebutuhan.</p>
-  </div>
+<div class="info-item"><div class="info-icon">🌐</div><strong>Multi Platform</strong><p>Mencoba berbagai situs yang didukung mesin downloader.</p></div>
+<div class="info-item"><div class="info-icon">🎬</div><strong>Video Preview</strong><p>Periksa hasil video sebelum mengunduh.</p></div>
+<div class="info-item"><div class="info-icon">⚡</div><strong>Proses Otomatis</strong><p>Permintaan diproses melalui server cloud.</p></div>
+<div class="info-item"><div class="info-icon">🎵</div><strong>MP4 dan MP3</strong><p>Pilih format video atau audio sesuai kebutuhan.</p></div>
 </div>
 
 <div class="section-title" id="guide">Panduan Penggunaan</div>
-
-<div class="faq">
-  <strong>1. Salin tautan video</strong>
-  <p>Salin tautan dari situs sumber video yang didukung.</p>
-</div>
-
-<div class="faq">
-  <strong>2. Tempel dan pilih format</strong>
-  <p>Tempel tautan, kemudian pilih MP4 atau MP3 dan resolusi.</p>
-</div>
-
-<div class="faq">
-  <strong>3. Tunggu proses selesai</strong>
-  <p>Status akan diperbarui berdasarkan informasi dari server.</p>
-</div>
-
-<div class="faq">
-  <strong>4. Lihat preview dan unduh</strong>
-  <p>Jika pemutar mendukung file tersebut, kamu bisa melihat preview sebelum mengunduh.</p>
-</div>
+<div class="faq"><strong>1. Salin tautan video</strong><p>Salin tautan dari situs sumber video yang didukung.</p></div>
+<div class="faq"><strong>2. Tempel dan pilih format</strong><p>Tempel tautan, kemudian pilih MP4 atau MP3 dan resolusi.</p></div>
+<div class="faq"><strong>3. Tunggu proses selesai</strong><p>Status akan diperbarui berdasarkan informasi dari server.</p></div>
+<div class="faq"><strong>4. Lihat preview dan unduh</strong><p>Periksa hasil lalu buka halaman pengambilan file.</p></div>
 
 <div class="section-title" id="contact">Informasi dan Kontak</div>
-
 <div class="faq">
-  <strong>FBT DOWNLOADER</strong>
-  <p>Gunakan layanan ini secara bertanggung jawab. Hormati hak cipta dan ketentuan setiap platform.</p>
-  <p>Kontak: Koinklub@gmail.com</p>
+<strong>FBT DOWNLOADER</strong>
+<p>Gunakan layanan ini secara bertanggung jawab. Hormati hak cipta dan ketentuan setiap platform.</p>
+<p>Kontak: Koinklub@gmail.com</p>
 </div>
 
 <footer class="footer">
-  © <span id="year"></span> FBT DOWNLOADER<br>
-  Universal Video Downloader
+© <span id="year"></span> FBT DOWNLOADER<br>
+Universal Video Downloader
 </footer>
-
 </main>
 
 <nav class="bottom-nav">
-  <a class="nav-item active" href="#home"><span>⌂</span>Beranda</a>
-  <a class="nav-item" href="#statusCard"><span>⬇</span>Hasil</a>
-  <a class="nav-item" href="#guide"><span>▤</span>Panduan</a>
-  <a class="nav-item" href="#contact"><span>✉</span>Kontak</a>
+<a class="nav-item active" href="#home"><span>⌂</span>Beranda</a>
+<a class="nav-item" href="#statusCard"><span>⬇</span>Hasil</a>
+<a class="nav-item" href="#guide"><span>▤</span>Panduan</a>
+<a class="nav-item" href="#contact"><span>✉</span>Kontak</a>
 </nav>
 
 <script>
 const API_URL = "https://video-downloader-api.koinklub.workers.dev";
-
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 let pollTimer = null;
 let activeRequestId = null;
 
 $("year").textContent = new Date().getFullYear();
 
-function showStatus(message, detail, progress, stage) {
-  $("statusCard").style.display = "block";
-  $("statusMessage").textContent = message;
-  $("statusDetail").textContent = detail || "";
-  $("progressFill").style.width = Math.max(0, Math.min(100, progress || 0)) + "%";
-  $("progressText").textContent = Math.max(0, Math.min(100, progress || 0)) + "%";
-  $("progressStage").textContent = stage || "";
+function showStatus(message,detail,progress,stage){
+$("statusCard").style.display="block";
+$("statusMessage").textContent=message;
+$("statusDetail").textContent=detail||"";
+const value=Math.max(0,Math.min(100,Number(progress)||0));
+$("progressFill").style.width=value+"%";
+$("progressText").textContent=value+"%";
+$("progressStage").textContent=stage||"";
 }
 
-function showError(message) {
-  clearInterval(pollTimer);
-  $("spinner").style.display = "none";
-  $("statusMessage").textContent = "Download gagal";
-  $("statusMessage").classList.add("error");
-  $("statusDetail").textContent = message;
-  $("downloadBtn").disabled = false;
-  $("downloadBtn").textContent = "↻ COBA LAGI";
+function showError(message){
+clearInterval(pollTimer);
+$("spinner").style.display="none";
+$("statusMessage").textContent="Download gagal";
+$("statusMessage").classList.add("error");
+$("statusDetail").textContent=message;
+$("processBtn").disabled=false;
+$("processBtn").textContent="↻ COBA LAGI";
 }
 
-function makeRequestId() {
-  if (crypto.randomUUID) return crypto.randomUUID();
-
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === "x" ? r : (r & 3 | 8)).toString(16);
-  });
+function makeRequestId(){
+if(crypto.randomUUID)return crypto.randomUUID();
+return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+const r=Math.random()*16|0;
+return(c==="x"?r:(r&3|8)).toString(16);
+});
 }
 
-async function startDownload() {
-  const videoURL = $("videoUrl").value.trim();
-  const format = $("format").value;
-  const resolution = $("resolution").value;
+async function startDownload(){
+const videoURL=$("videoUrl").value.trim();
+const format=$("format").value;
+const resolution=$("resolution").value;
 
-  if (!videoURL) {
-    alert("Masukkan tautan video terlebih dahulu.");
-    $("videoUrl").focus();
-    return;
-  }
-
-  try {
-    const parsed = new URL(videoURL);
-
-    if (parsed.protocol !== "https:") {
-      alert("Tautan harus menggunakan HTTPS.");
-      return;
-    }
-  } catch {
-    alert("Tautan tidak valid.");
-    return;
-  }
-
-  clearInterval(pollTimer);
-
-  $("resultCard").style.display = "none";
-  $("statusCard").style.display = "block";
-  $("spinner").style.display = "block";
-  $("statusMessage").classList.remove("error");
-
-  $("downloadBtn").disabled = true;
-  $("downloadBtn").textContent = "MEMPROSES...";
-
-  showStatus("Mengirim permintaan...", "Menghubungi server FBT", 5, "Mengirim");
-
-  activeRequestId = makeRequestId();
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        video_url: videoURL,
-        format,
-        resolution,
-        request_id: activeRequestId
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Permintaan gagal dikirim.");
-    }
-
-    showStatus(
-      data.message || "Permintaan diterima",
-      "Menunggu proses dari GitHub Actions",
-      data.progress || 5,
-      "Antrean"
-    );
-
-    pollStatus(activeRequestId);
-
-  } catch (error) {
-    showError(error.message || "Tidak dapat menghubungi server.");
-  }
+if(!videoURL){
+alert("Masukkan tautan video terlebih dahulu.");
+$("videoUrl").focus();
+return;
 }
 
-function pollStatus(id) {
-  clearInterval(pollTimer);
-
-  async function check() {
-    try {
-      const response = await fetch(
-        API_URL + "/status?id=" + encodeURIComponent(id),
-        { cache: "no-store" }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || data.success === false || data.status === "failed") {
-        throw new Error(data.message || "Pemrosesan gagal.");
-      }
-
-      const progress = Number(data.progress) || 5;
-
-      showStatus(
-        data.message || "Sedang memproses video",
-        "Permintaan ID: " + id,
-        progress,
-        data.status || "processing"
-      );
-
-      if (data.status === "completed") {
-        clearInterval(pollTimer);
-        showResult(data.download_url);
-      }
-
-    } catch (error) {
-      clearInterval(pollTimer);
-      showError(error.message || "Gagal memeriksa status.");
-    }
-  }
-
-  check();
-  pollTimer = setInterval(check, 5000);
+try{
+const parsed=new URL(videoURL);
+if(parsed.protocol!=="https:"){
+alert("Tautan harus menggunakan HTTPS.");
+return;
+}
+}catch{
+alert("Tautan tidak valid.");
+return;
 }
 
-function showResult(url) {
-  if (!url) {
-    showError("Tautan hasil tidak tersedia.");
-    return;
-  }
+clearInterval(pollTimer);
+$("resultCard").style.display="none";
+$("statusCard").style.display="block";
+$("spinner").style.display="block";
+$("statusMessage").classList.remove("error");
+$("processBtn").disabled=true;
+$("processBtn").textContent="MEMPROSES...";
 
-  let parsed;
+showStatus("Mengirim permintaan...","Menghubungi server FBT",5,"Mengirim");
+activeRequestId=makeRequestId();
 
-  try {
-    parsed = new URL(url);
-    if (parsed.protocol !== "https:") throw new Error("URL tidak aman");
-  } catch {
-    showError("Tautan hasil tidak valid.");
-    return;
-  }
+try{
+const response=await fetch(API_URL,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+video_url:videoURL,
+format:format,
+resolution:resolution,
+request_id:activeRequestId
+})
+});
 
-  $("spinner").style.display = "none";
-  $("statusMessage").textContent = "Download selesai!";
-  $("statusDetail").textContent = "File berhasil diproses.";
-  $("progressFill").style.width = "100%";
-  $("progressText").textContent = "100%";
-  $("progressStage").textContent = "Selesai";
-
-  $("downloadLink").href = url;
-
-  const preview = $("videoPreview");
-  preview.pause();
-  preview.removeAttribute("src");
-
-  if ($("format").value === "mp4") {
-    preview.src = url;
-    preview.load();
-    preview.style.display = "block";
-  } else {
-    preview.style.display = "none";
-  }
-
-  $("resultCard").style.display = "block";
-  $("downloadBtn").disabled = false;
-  $("downloadBtn").textContent = "✓ SELESAI";
-
-  $("resultCard").scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
+const data=await response.json();
+if(!response.ok||!data.success){
+throw new Error(data.message||"Permintaan gagal dikirim.");
 }
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register(
-      "/video-downloader/service-worker.js",
-      { scope: "/video-downloader/" }
-    ).catch(error => console.log("Service worker:", error));
-  });
+showStatus(
+data.message||"Permintaan diterima",
+"Menunggu proses dari GitHub Actions",
+data.progress||5,
+"Antrean"
+);
+
+pollStatus(activeRequestId);
+
+}catch(error){
+showError(error.message||"Tidak dapat menghubungi server.");
+}
+}
+
+function pollStatus(id){
+clearInterval(pollTimer);
+
+async function check(){
+try{
+const response=await fetch(
+API_URL+"/status?id="+encodeURIComponent(id),
+{cache:"no-store"}
+);
+
+const data=await response.json();
+
+if(!response.ok||data.success===false||data.status==="failed"){
+throw new Error(data.message||"Pemrosesan gagal.");
+}
+
+const progress=Number(data.progress)||5;
+
+showStatus(
+data.message||"Sedang memproses video",
+"Permintaan ID: "+id,
+progress,
+data.status||"processing"
+);
+
+if(data.status==="completed"){
+clearInterval(pollTimer);
+showResult(data.download_url);
+}
+
+}catch(error){
+clearInterval(pollTimer);
+showError(error.message||"Gagal memeriksa status.");
+}
+}
+
+check();
+pollTimer=setInterval(check,5000);
+}
+
+function showResult(url){
+if(!url){
+showError("Tautan hasil tidak tersedia.");
+return;
+}
+
+let parsed;
+try{
+parsed=new URL(url);
+if(parsed.protocol!=="https:")throw new Error("URL tidak aman");
+}catch{
+showError("Tautan hasil tidak valid.");
+return;
+}
+
+$("spinner").style.display="none";
+$("statusMessage").textContent="Download selesai!";
+$("statusDetail").textContent="File berhasil diproses.";
+$("progressFill").style.width="100%";
+$("progressText").textContent="100%";
+$("progressStage").textContent="Selesai";
+
+const downloadPage=
+"/video-downloader/download.html?url="+encodeURIComponent(parsed.href);
+
+$("downloadLink").href=downloadPage;
+
+const preview=$("videoPreview");
+preview.pause();
+preview.removeAttribute("src");
+
+if($("format").value==="mp4"){
+preview.src=parsed.href;
+preview.load();
+preview.style.display="block";
+}else{
+preview.style.display="none";
+}
+
+$("resultCard").style.display="block";
+$("processBtn").disabled=false;
+$("processBtn").textContent="✓ SELESAI";
+
+$("resultCard").scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+}
+
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>{
+navigator.serviceWorker.register(
+"/video-downloader/service-worker.js",
+{scope:"/video-downloader/"}
+).catch(error=>console.log("Service worker:",error));
+});
 }
 </script>
-
 </body>
 </html>
