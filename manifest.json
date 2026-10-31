@@ -2,12 +2,17 @@
   "name": "FBT Downloader",
   "short_name": "FBT Downloader",
   "description": "Download video dan audio dengan mudah.",
+  "id": "com.fbtdownloader.pwa",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#080d18",
   "theme_color": "#080d18",
+  "categories": [
+    "utilities",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "launchericon-192x192.png",
