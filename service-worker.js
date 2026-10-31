@@ -1,50 +1,44 @@
-const CACHE_NAME = "fbt-downloader-v1";
-const APP_URL = "/video-downloader/";
 
-self.addEventListener("install", (event) => {
+const CACHE_NAME = "fbt-downloader-v2";
+
+const FILES_TO_CACHE = [
+  "/",
+  "/index.html",
+  "/manifest.json",
+  "/launchericon-192x192.png",
+  "/launchericon-512x512.png"
+];
+
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.add(APP_URL);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(FILES_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
-
-  self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then((keys) =>
+    caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  const request = event.request;
-  const url = new URL(request.url);
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
 
-  // Jangan mengganggu proses download atau permintaan selain GET.
-  if (
-    request.method !== "GET" ||
-    url.origin !== self.location.origin
-  ) {
-    return;
-  }
+  const url = new URL(event.request.url);
 
-  // Halaman utama: utamakan jaringan agar selalu mendapat versi terbaru.
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(async () => {
-        return (
-          await caches.match(APP_URL)
-        ) || Response.error();
-      })
-    );
-  }
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith(
+    fetch(event.request).catch(() =>
+      caches.match(event.request)
+    )
+  );
 });
