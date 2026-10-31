@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080d18">
+
+<!-- GOOGLE ADSENSE -->
+<script async
+src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7629758385452727"
+crossorigin="anonymous"></script>
+
+<title>Download Hasil - FBT Downloader</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:#080d18;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.card{
+  width:100%;
+  max-width:430px;
+  background:#111a2b;
+  border:1px solid #26354b;
+  border-radius:22px;
+  padding:28px 22px;
+  text-align:center;
+}
+.logo{
+  color:#20df83;
+  font-size:25px;
+  font-weight:900;
+  margin-bottom:20px;
+}
+h1{font-size:23px;margin:10px 0}
+p{color:#aab7c9;line-height:1.6;font-size:14px}
+.status{
+  margin:22px 0;
+  padding:14px;
+  border-radius:12px;
+  background:#0b1422;
+  color:#20df83;
+}
+.btn{
+  display:block;
+  width:100%;
+  padding:16px;
+  margin-top:14px;
+  border:0;
+  border-radius:12px;
+  background:#20df83;
+  color:#06140d;
+  font-weight:900;
+  font-size:16px;
+  text-decoration:none;
+  cursor:pointer;
+}
+.btn.secondary{
+  background:#26354b;
+  color:#fff;
+}
+.error{color:#ff7777}
+small{color:#8291a6}
+</style>
+</head>
+
+<body>
+<div class="card">
+  <div class="logo">FBT DOWNLOADER</div>
+
+  <h1>Hasil Video Siap Diunduh</h1>
+
+  <p>
+    Proses video sudah selesai.
+    Kamu tidak perlu memproses ulang.
+  </p>
+
+  <div class="status" id="status">
+    Memeriksa file hasil download...
+  </div>
+
+  <a id="downloadBtn" class="btn" hidden>
+    ⬇ DOWNLOAD SEKARANG
+  </a>
+
+  <a href="/video-downloader/" class="btn secondary">
+    Kembali ke Beranda
+  </a>
+
+  <p><small>FBT Downloader</small></p>
+</div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const rawUrl = params.get("url");
+  const status = document.getElementById("status");
+  const button = document.getElementById("downloadBtn");
+
+  if(!rawUrl){
+    status.textContent = "Link hasil download tidak ditemukan.";
+    status.classList.add("error");
+    return;
+  }
+
+  let fileUrl;
+
+  try{
+    fileUrl = new URL(rawUrl);
+
+    const allowedHosts = [
+      "github.com",
+      "objects.githubusercontent.com"
+    ];
+
+    if(
+      fileUrl.protocol !== "https:" ||
+      !allowedHosts.includes(fileUrl.hostname)
+    ){
+      throw new Error("Alamat file tidak diizinkan.");
+    }
+  }catch(error){
+    status.textContent = "Link download tidak valid.";
+    status.classList.add("error");
+    return;
+  }
+
+  status.textContent = "File siap diunduh.";
+
+  button.href = fileUrl.href;
+  button.hidden = false;
+  button.setAttribute("download", "");
+
+  button.addEventListener("click",function(){
+    status.textContent = "Membuka file download...";
+  });
+})();
+</script>
+</body>
+</html>
