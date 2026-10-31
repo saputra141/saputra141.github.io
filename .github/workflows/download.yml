@@ -1,3 +1,4 @@
+
 name: Download Video
 
 on:
@@ -49,10 +50,22 @@ jobs:
 
       - name: Install dependencies
         run: |
+          set -euo pipefail
+
           sudo apt-get update
-          sudo apt-get install -y ffmpeg jq
+          sudo apt-get install -y ffmpeg jq curl
+
+          # Install Deno JavaScript runtime
+          curl -fsSL https://deno.land/install.sh | sh
+          echo "$HOME/.deno/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.deno/bin:$PATH"
+
+          deno --version
+
+          # Install yt-dlp with EJS support
           python -m pip install --upgrade pip
           python -m pip install --upgrade "yt-dlp[default,curl-cffi]"
+
           python -m yt_dlp --version
 
       - name: Prepare variables
@@ -136,6 +149,7 @@ jobs:
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
+            --remote-components ejs:npm \
             -f "$SELECTOR" \
             --merge-output-format mp4 \
             --recode-video mp4 \
@@ -144,7 +158,6 @@ jobs:
 
           if [[ ! -f "hasil.mp4" ]]; then
             echo "File MP4 tidak ditemukan"
-            find . -maxdepth 1 -type f
             exit 1
           fi
 
@@ -161,6 +174,7 @@ jobs:
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
+            --remote-components ejs:npm \
             -x \
             --audio-format mp3 \
             --audio-quality 0 \
@@ -169,7 +183,6 @@ jobs:
 
           if [[ ! -f "hasil.mp3" ]]; then
             echo "File MP3 tidak ditemukan"
-            find . -maxdepth 1 -type f
             exit 1
           fi
 
@@ -200,14 +213,7 @@ jobs:
             FILE="hasil.mp3"
           fi
 
-          if [[ ! -f "$FILE" ]]; then
-            echo "File hasil tidak ditemukan"
-            exit 1
-          fi
-
           gh release upload "$TAG" "$FILE" --clobber
-
-          echo "Upload berhasil"
 
       - name: Verify uploaded file
         env:
@@ -224,10 +230,8 @@ jobs:
 
           ASSETS=$(gh release view "$TAG" --json assets --jq '.assets[].name')
 
-          echo "$ASSETS"
-
           if ! echo "$ASSETS" | grep -Fxq "$FILE"; then
-            echo "File belum ditemukan di GitHub Release"
+            echo "File belum ditemukan"
             exit 1
           fi
 
@@ -256,9 +260,6 @@ jobs:
 
           gh release edit "$TAG" --notes-file status.json
 
-          echo "DOWNLOAD URL:"
-          echo "$DOWNLOAD_URL"
-
       - name: Mark failed
         if: failure()
         env:
@@ -269,7 +270,7 @@ jobs:
             jq -n '{
               status: "failed",
               progress: 0,
-              message: "Download gagal. Periksa log GitHub Actions."
+              message: "Download gagal. Sumber mungkin membatasi akses atau memerlukan autentikasi."
             }' > failed.json
 
             gh release edit "$TAG" --notes-file failed.json || true
