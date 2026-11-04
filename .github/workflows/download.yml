@@ -112,7 +112,7 @@ jobs:
             echo "YOUTUBE_COOKIE_FILE=$COOKIE_FILE" >> "$GITHUB_ENV"
             echo "Cookies berhasil disiapkan."
           else
-            echo "Cookies tidak tersedia. Download non-YouTube tetap dapat berjalan."
+            echo "Cookies tidak tersedia."
           fi
 
       - name: Remove previous release
@@ -173,7 +173,7 @@ jobs:
             SELECTOR="bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]/b"
           fi
 
-          python -m yt_dlp \
+          OUTPUT_FILE=$(python -m yt_dlp \
             "${ARGS[@]}" \
             --no-playlist \
             --retries 3 \
@@ -183,15 +183,18 @@ jobs:
             -f "$SELECTOR" \
             --merge-output-format mp4 \
             --recode-video mp4 \
-            -o "hasil.%(ext)s" \
-            "$VIDEO_URL"
+            -o "%(title).150s.%(ext)s" \
+            --print after_move:filepath \
+            "$VIDEO_URL")
 
-          if [[ ! -f "hasil.mp4" ]]; then
+          if [[ -z "$OUTPUT_FILE" || ! -f "$OUTPUT_FILE" ]]; then
             echo "File MP4 tidak ditemukan"
             exit 1
           fi
 
-          ls -lh hasil.mp4
+          echo "OUTPUT_FILE=$OUTPUT_FILE" >> "$GITHUB_ENV"
+
+          ls -lh "$OUTPUT_FILE"
 
       - name: Download MP3
         if: inputs.format == 'mp3'
@@ -211,7 +214,7 @@ jobs:
               ;;
           esac
 
-          python -m yt_dlp \
+          OUTPUT_FILE=$(python -m yt_dlp \
             "${ARGS[@]}" \
             --no-playlist \
             --retries 3 \
@@ -221,15 +224,18 @@ jobs:
             -x \
             --audio-format mp3 \
             --audio-quality 0 \
-            -o "hasil.%(ext)s" \
-            "$VIDEO_URL"
+            -o "%(title).150s.%(ext)s" \
+            --print after_move:filepath \
+            "$VIDEO_URL")
 
-          if [[ ! -f "hasil.mp3" ]]; then
+          if [[ -z "$OUTPUT_FILE" || ! -f "$OUTPUT_FILE" ]]; then
             echo "File MP3 tidak ditemukan"
             exit 1
           fi
 
-          ls -lh hasil.mp3
+          echo "OUTPUT_FILE=$OUTPUT_FILE" >> "$GITHUB_ENV"
+
+          ls -lh "$OUTPUT_FILE"
 
       - name: Update uploading status
         env:
@@ -250,13 +256,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "$FORMAT" == "mp4" ]]; then
-            FILE="hasil.mp4"
-          else
-            FILE="hasil.mp3"
-          fi
-
-          gh release upload "$TAG" "$FILE" --clobber
+          gh release upload "$TAG" "$OUTPUT_FILE" --clobber
 
       - name: Verify uploaded file
         env:
@@ -265,40 +265,42 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "$FORMAT" == "mp4" ]]; then
-            FILE="hasil.mp4"
-          else
-            FILE="hasil.mp3"
-          fi
+          FILE_NAME=$(basename "$OUTPUT_FILE")
 
-          ASSETS=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+          ASSETS=$(gh release view "$TAG" \
+            --json assets \
+            --jq '.assets[].name')
 
-          if ! echo "$ASSETS" | grep -Fxq "$FILE"; then
+          if ! echo "$ASSETS" | grep -Fxq "$FILE_NAME"; then
             echo "File belum ditemukan"
             exit 1
           fi
 
-          echo "File berhasil diverifikasi"
+          echo "File berhasil diverifikasi: $FILE_NAME"
 
       - name: Mark completed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          if [[ "$FORMAT" == "mp4" ]]; then
-            FILE="hasil.mp4"
-          else
-            FILE="hasil.mp3"
-          fi
+          set -euo pipefail
 
-          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
+          FILE_NAME=$(basename "$OUTPUT_FILE")
+
+          ENCODED_FILE=$(python -c \
+            'import os,urllib.parse; print(urllib.parse.quote(os.path.basename(os.environ["OUTPUT_FILE"])))')
+
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ENCODED_FILE}"
 
           jq -n \
             --arg url "$DOWNLOAD_URL" \
+            --arg filename "$FILE_NAME" \
             '{
               status: "completed",
               progress: 100,
               message: "File siap diunduh!",
-              download_url: $url
+              download_url: $url,
+              filename: $filename
             }' > status.json
 
           gh release edit "$TAG" --notes-file status.json
