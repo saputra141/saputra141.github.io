@@ -110,6 +110,8 @@ background:#080f1d;color:white;padding:0 14px;outline:none;font-size:13px
 .platforms{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
 .platform{text-align:center;padding:12px 3px;background:#0a1321;border:1px solid var(--border);border-radius:13px;font-size:10px;color:#cbd5e5}
 .symbol{display:block;font-size:20px;margin-bottom:6px}
+.platform:nth-child(4){border-color:rgba(255,59,48,.35)}
+.platform:nth-child(4) .symbol{color:#ff2b2b}
 .options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:20px}
 select{width:100%;height:47px;border-radius:12px;background:#080f1d;border:1px solid var(--border);color:white;padding:0 10px;outline:none;font-size:13px}
 .main-btn{
@@ -132,9 +134,9 @@ font-weight:900;font-size:15px;box-shadow:0 8px 24px #20df8330
 .success{color:var(--green);font-size:13px;margin-bottom:15px}
 video{width:100%;max-height:340px;background:#000;border-radius:14px;display:block;margin-bottom:15px}
 .download-btn{
-display:flex;justify-content:center;align-items:center;width:100%;min-height:50px;
-border-radius:14px;text-decoration:none;background:var(--green);color:#03170d;
-font-size:14px;font-weight:900
+ display:flex;justify-content:center;align-items:center;width:100%;min-height:50px;
+ border-radius:14px;text-decoration:none;background:var(--green);color:#03170d;
+ font-size:14px;font-weight:900
 }
 .note{color:var(--muted);font-size:11px;line-height:1.7;margin-top:12px}
 .error{color:var(--red)}
@@ -203,7 +205,7 @@ backdrop-filter:blur(18px);border:1px solid #ffffff12;border-bottom:0;border-rad
 <div class="platform"><span class="symbol">📘</span>Facebook</div>
 <div class="platform"><span class="symbol">📸</span>Instagram</div>
 <div class="platform"><span class="symbol">♪</span>TikTok</div>
-<div class="platform"><span class="symbol">▶️</span>YouTube</div>
+<div class="platform"><span class="symbol">▶</span>YouTube</div>
 <div class="platform"><span class="symbol">𝕏</span>X</div>
 </div>
 
@@ -274,7 +276,7 @@ Tekan tombol di atas untuk membuka halaman pengambilan hasil. GitHub Actions tid
 <h2>FBT Downloader - Universal Video Downloader</h2>
 
 <p>
-FBT Downloader adalah layanan Universal Video Downloader yang dirancang untuk membantu pengguna memproses tautan video dari berbagai situs yang didukung. Pengguna cukup menempelkan tautan video, memilih format yang tersedia, lalu mengirim permintaan untuk diproses.
+FBT Downloader adalah layanan Universal Video Downloader yang dirancang untuk membantu pengguna memproses tautan video dari berbagai situs yang didukung. Pengguna cukup menempelkan tautan video, memilih format yang tersedia, lalu menjalankan proses unduh.
 </p>
 
 <p>
@@ -303,25 +305,25 @@ Tidak semua tautan atau platform selalu dapat diproses. Keberhasilan pengunduhan
 <h3>Download Video MP4 dan Audio MP3</h3>
 
 <p>
-Dengan FBT Downloader, pengguna dapat memilih MP4 untuk menyimpan video atau MP3 untuk mendapatkan audio, apabila format tersebut tersedia dari sumber video. Pilihan resolusi dapat disesuaikan dengan opsi yang ditampilkan.
+Dengan FBT Downloader, pengguna dapat memilih MP4 untuk menyimpan video atau MP3 untuk mendapatkan audio, apabila format tersebut tersedia dari sumber video. Pilihan resolusi dapat disesuaikan dengan kebutuhan akses dan kualitas yang diinginkan.
 </p>
 
 <h3>Cara Menggunakan Universal Video Downloader</h3>
 
 <p>
-Salin tautan video dari situs sumber, buka FBT Downloader, tempelkan tautan ke kolom yang tersedia, pilih MP4 atau MP3, kemudian pilih resolusi. Tekan tombol proses dan tunggu hingga server menyelesaikan permintaan. Jika berhasil, hasil dapat diperiksa melalui preview dan tombol download.
+Salin tautan video dari situs sumber, buka FBT Downloader, tempelkan tautan ke kolom yang tersedia, pilih MP4 atau MP3, kemudian pilih resolusi. Tekan tombol proses dan tunggu hingga server menyelesaikan permintaan. Jika hasil tersedia, pengguna dapat melihat preview dan mengunduh file.
 </p>
 
 <h3>Gunakan Layanan dengan Bertanggung Jawab</h3>
 
 <p>
-Pastikan kamu memiliki hak atau izin untuk mengunduh dan menggunakan konten. Hormati hak cipta, privasi, serta ketentuan layanan dari setiap platform. FBT Downloader tidak memberikan izin untuk menggunakan ulang konten milik pihak lain.
+Pastikan kamu memiliki hak atau izin untuk mengunduh dan menggunakan konten. Hormati hak cipta, privasi, serta ketentuan layanan dari setiap platform. FBT Downloader tidak memberikan izin untuk menggunakan konten milik orang lain tanpa hak yang sah.
 </p>
 </section>
 
 <div class="section-title" id="guide">Panduan Penggunaan</div>
 <div class="faq"><strong>1. Bagaimana cara menggunakan FBT Downloader?</strong><p>Salin tautan video dari situs sumber, tempelkan ke kolom input, pilih format dan resolusi, lalu tekan tombol proses.</p></div>
-<div class="faq"><strong>2. Apakah FBT Downloader mendukung banyak situs?</strong><p>FBT Downloader dirancang untuk mencoba berbagai situs yang didukung oleh mesin downloader. Dukungan setiap situs dapat berubah dan tidak semua tautan dijamin berhasil.</p></div>
+<div class="faq"><strong>2. Apakah FBT Downloader mendukung banyak situs?</strong><p>FBT Downloader dirancang untuk mencoba berbagai situs yang didukung oleh mesin downloader. Dukungan setiap situs dapat berubah sesuai kondisi dan sistem platform.</p></div>
 <div class="faq"><strong>3. Apakah bisa download video MP4?</strong><p>Ya, tersedia pilihan format MP4 untuk video apabila sumber dan proses pengunduhan mendukungnya.</p></div>
 <div class="faq"><strong>4. Apakah bisa download audio MP3?</strong><p>Tersedia pilihan MP3 untuk audio apabila format tersebut dapat diproses dari sumber video.</p></div>
 <div class="faq"><strong>5. Apakah semua video bisa diunduh?</strong><p>Tidak. Video privat, video yang dibatasi, tautan tidak valid, atau sumber yang tidak didukung mungkin tidak dapat diproses.</p></div>
@@ -439,10 +441,10 @@ throw new Error(data.message||"Permintaan gagal dikirim.");
 }
 
 showStatus(
-data.message||"Permintaan diterima",
-"Menunggu proses dari GitHub Actions",
-data.progress||5,
-"Antrean"
+ data.message||"Permintaan diterima",
+ "Menunggu proses dari GitHub Actions",
+ data.progress||5,
+ "Antrean"
 );
 
 pollStatus(activeRequestId);
@@ -458,8 +460,8 @@ clearInterval(pollTimer);
 async function check(){
 try{
 const response=await fetch(
-API_URL+"/status?id="+encodeURIComponent(id),
-{cache:"no-store"}
+ API_URL+"/status?id="+encodeURIComponent(id),
+ {cache:"no-store"}
 );
 
 const data=await response.json();
@@ -471,10 +473,10 @@ throw new Error(data.message||"Pemrosesan gagal.");
 const progress=Number(data.progress)||5;
 
 showStatus(
-data.message||"Sedang memproses video",
-"Permintaan ID: "+id,
-progress,
-data.status||"processing"
+ data.message||"Sedang memproses video",
+ "Permintaan ID: "+id,
+ progress,
+ data.status||"processing"
 );
 
 if(data.status==="completed"){
