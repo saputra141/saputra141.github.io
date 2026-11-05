@@ -1,3 +1,4 @@
+
 name: Download Video
 
 on:
@@ -50,21 +51,15 @@ jobs:
       - name: Install dependencies
         run: |
           set -euo pipefail
-
           sudo apt-get update
           sudo apt-get install -y ffmpeg jq curl
-
           curl -fsSL https://deno.land/install.sh | sh
           echo "$HOME/.deno/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.deno/bin:$PATH"
-
           deno --version
-
           python -m pip install --upgrade pip
           python -m pip install --upgrade "yt-dlp[default,curl-cffi]"
-
           python -m yt_dlp --version
-
       - name: Prepare variables
         shell: bash
         env:
@@ -74,88 +69,56 @@ jobs:
           INPUT_ID: ${{ inputs.request_id }}
         run: |
           set -euo pipefail
-
-          if [[ -z "${INPUT_ID:-}" ]]; then
-            echo "Request ID tidak boleh kosong"
+          if [[ ! "$INPUT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+            echo "Request ID tidak valid"
             exit 1
           fi
-
-          if [[ "${INPUT_ID}" =~ [[:space:]] ]]; then
-            echo "Request ID tidak boleh mengandung spasi"
-            exit 1
-          fi
-
           if [[ "$INPUT_FORMAT" != "mp4" && "$INPUT_FORMAT" != "mp3" ]]; then
             echo "Format tidak valid"
             exit 1
           fi
-
           if [[ "$INPUT_URL" != https://* ]]; then
             echo "URL harus menggunakan HTTPS"
             exit 1
           fi
-
           echo "TAG=download-${INPUT_ID}" >> "$GITHUB_ENV"
           echo "VIDEO_URL=${INPUT_URL}" >> "$GITHUB_ENV"
           echo "FORMAT=${INPUT_FORMAT}" >> "$GITHUB_ENV"
           echo "RESOLUTION=${INPUT_RESOLUTION}" >> "$GITHUB_ENV"
-
       - name: Prepare YouTube Cookies
         shell: bash
         env:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
           set -euo pipefail
-
           if [[ -n "$YOUTUBE_COOKIES" ]]; then
             COOKIE_FILE="$RUNNER_TEMP/youtube-cookies.txt"
-
             printf '%s\n' "$YOUTUBE_COOKIES" > "$COOKIE_FILE"
             chmod 600 "$COOKIE_FILE"
-
             echo "YOUTUBE_COOKIE_FILE=$COOKIE_FILE" >> "$GITHUB_ENV"
             echo "Cookies berhasil disiapkan."
           else
-            echo "Cookies tidak tersedia."
+            echo "Cookies tidak tersedia. Download non-YouTube tetap dapat berjalan."
           fi
-
       - name: Remove previous release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
-          set -euo pipefail
-
-          if [[ -z "${TAG:-}" ]]; then
-            echo "TAG belum di-set"
-            exit 1
-          fi
-
           gh release delete "$TAG" --yes || true
-          git push origin --delete "$TAG" >/dev/null 2>&1 || true
-          git tag -d "$TAG" >/dev/null 2>&1 || true
-
+          git push origin --delete "$TAG" || true
+          git tag -d "$TAG" || true
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
-          set -euo pipefail
-
           jq -n '{
             status: "queued",
             progress: 5,
             message: "Permintaan diterima"
           }' > status.json
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --notes-file status.json
-          else
-            gh release create "$TAG" \
-              --title "FBT Downloader Result" \
-              --notes-file status.json
-          fi
-
+          gh release create "$TAG" \
+            --title "FBT Downloader Result" \
+            --notes-file status.json
       - name: Update processing status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -165,17 +128,13 @@ jobs:
             progress: 15,
             message: "Mengenali sumber dan memproses video"
           }' > status.json
-
           gh release edit "$TAG" --notes-file status.json
-
       - name: Download MP4
         if: inputs.format == 'mp4'
         shell: bash
         run: |
           set -euo pipefail
-
           ARGS=()
-
           case "$VIDEO_URL" in
             *youtube.com/*|*youtu.be/*|*youtube-nocookie.com/*)
               if [[ -z "${YOUTUBE_COOKIE_FILE:-}" || ! -f "$YOUTUBE_COOKIE_FILE" ]]; then
@@ -185,47 +144,34 @@ jobs:
               ARGS+=(--cookies "$YOUTUBE_COOKIE_FILE")
               ;;
           esac
-
           if [[ "$RESOLUTION" == "best" ]]; then
             SELECTOR="bv*+ba/b"
           else
             SELECTOR="bv*[height<=${RESOLUTION}]+ba/b[height<=${RESOLUTION}]/b"
           fi
-
-          OUTPUT_FILE=$(python -m yt_dlp \
+          python -m yt_dlp \
             "${ARGS[@]}" \
             --no-playlist \
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
+            --remote-components ejs:npm \
             -f "$SELECTOR" \
             --merge-output-format mp4 \
             --recode-video mp4 \
-            -o "%(title).150s.%(ext)s" \
-            --print after_move:filepath \
-            "$VIDEO_URL")
-
-          if [[ -z "$OUTPUT_FILE" || ! -f "$OUTPUT_FILE" ]]; then
+            -o "hasil.%(ext)s" \
+            "$VIDEO_URL"
+          if [[ ! -f "hasil.mp4" ]]; then
             echo "File MP4 tidak ditemukan"
             exit 1
           fi
-
-          SAFE_OUTPUT_FILE="$RUNNER_TEMP/${INPUT_ID}.mp4"
-          cp "$OUTPUT_FILE" "$SAFE_OUTPUT_FILE"
-
-          echo "OUTPUT_FILE=$SAFE_OUTPUT_FILE" >> "$GITHUB_ENV"
-          echo "SAFE_FILE_NAME=${INPUT_ID}.mp4" >> "$GITHUB_ENV"
-
-          ls -lh "$SAFE_OUTPUT_FILE"
-
+          ls -lh hasil.mp4
       - name: Download MP3
         if: inputs.format == 'mp3'
         shell: bash
         run: |
           set -euo pipefail
-
           ARGS=()
-
           case "$VIDEO_URL" in
             *youtube.com/*|*youtu.be/*|*youtube-nocookie.com/*)
               if [[ -z "${YOUTUBE_COOKIE_FILE:-}" || ! -f "$YOUTUBE_COOKIE_FILE" ]]; then
@@ -235,33 +181,23 @@ jobs:
               ARGS+=(--cookies "$YOUTUBE_COOKIE_FILE")
               ;;
           esac
-
-          OUTPUT_FILE=$(python -m yt_dlp \
+          python -m yt_dlp \
             "${ARGS[@]}" \
             --no-playlist \
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
+            --remote-components ejs:npm \
             -x \
             --audio-format mp3 \
             --audio-quality 0 \
-            -o "%(title).150s.%(ext)s" \
-            --print after_move:filepath \
-            "$VIDEO_URL")
-
-          if [[ -z "$OUTPUT_FILE" || ! -f "$OUTPUT_FILE" ]]; then
+            -o "hasil.%(ext)s" \
+            "$VIDEO_URL"
+          if [[ ! -f "hasil.mp3" ]]; then
             echo "File MP3 tidak ditemukan"
             exit 1
           fi
-
-          SAFE_OUTPUT_FILE="$RUNNER_TEMP/${INPUT_ID}.mp3"
-          cp "$OUTPUT_FILE" "$SAFE_OUTPUT_FILE"
-
-          echo "OUTPUT_FILE=$SAFE_OUTPUT_FILE" >> "$GITHUB_ENV"
-          echo "SAFE_FILE_NAME=${INPUT_ID}.mp3" >> "$GITHUB_ENV"
-
-          ls -lh "$SAFE_OUTPUT_FILE"
-
+          ls -lh hasil.mp3
       - name: Update uploading status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -271,88 +207,66 @@ jobs:
             progress: 80,
             message: "Mengunggah hasil download"
           }' > status.json
-
           gh release edit "$TAG" --notes-file status.json
-
       - name: Upload result
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-
-          if [[ -z "${OUTPUT_FILE:-}" || ! -f "$OUTPUT_FILE" ]]; then
-            echo "File hasil download tidak ditemukan di OUTPUT_FILE"
-            exit 1
+          if [[ "$FORMAT" == "mp4" ]]; then
+            FILE="hasil.mp4"
+          else
+            FILE="hasil.mp3"
           fi
-
-          gh release upload "$TAG" "$OUTPUT_FILE" --repo "$GITHUB_REPOSITORY" --clobber
-
+          gh release upload "$TAG" "$FILE" --clobber
       - name: Verify uploaded file
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-
-          FILE_NAME="${SAFE_FILE_NAME:-}"
-          if [[ -z "$FILE_NAME" ]]; then
-            echo "SAFE_FILE_NAME belum di-set"
-            exit 1
+          if [[ "$FORMAT" == "mp4" ]]; then
+            FILE="hasil.mp4"
+          else
+            FILE="hasil.mp3"
           fi
-
-          ASSETS=$(gh release view "$TAG" \
-            --json assets \
-            --jq '.assets[].name')
-
-          if ! echo "$ASSETS" | grep -Fxq "$FILE_NAME"; then
+          ASSETS=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+          if ! echo "$ASSETS" | grep -Fxq "$FILE"; then
             echo "File belum ditemukan"
             exit 1
           fi
-
-          echo "File berhasil diverifikasi: $FILE_NAME"
-
+          echo "File berhasil diverifikasi"
       - name: Mark completed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
-          set -euo pipefail
-
-          FILE_NAME="${SAFE_FILE_NAME}"
-
-          ENCODED_FILE=$(python -c \
-            'import os,urllib.parse; print(urllib.parse.quote(os.environ["SAFE_FILE_NAME"]))')
-
-          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ENCODED_FILE}"
-
+          if [[ "$FORMAT" == "mp4" ]]; then
+            FILE="hasil.mp4"
+          else
+            FILE="hasil.mp3"
+          fi
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE}"
           jq -n \
             --arg url "$DOWNLOAD_URL" \
-            --arg filename "$FILE_NAME" \
             '{
               status: "completed",
               progress: 100,
               message: "File siap diunduh!",
-              download_url: $url,
-              filename: $filename
+              download_url: $url
             }' > status.json
-
           gh release edit "$TAG" --notes-file status.json
-
       - name: Mark failed
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          set -euo pipefail
-
           if [[ -n "${TAG:-}" ]] && gh release view "$TAG" >/dev/null 2>&1; then
             jq -n '{
               status: "failed",
               progress: 0,
               message: "Download gagal. Sumber mungkin membatasi akses atau memerlukan autentikasi."
             }' > failed.json
-
             gh release edit "$TAG" --notes-file failed.json || true
           fi
