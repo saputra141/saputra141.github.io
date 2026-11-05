@@ -75,8 +75,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ ! "$INPUT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
-            echo "Request ID tidak valid"
+          if [[ -z "${INPUT_ID:-}" ]]; then
+            echo "Request ID tidak boleh kosong"
+            exit 1
+          fi
+
+          if [[ "${INPUT_ID}" =~ [[:space:]] ]]; then
+            echo "Request ID tidak boleh mengandung spasi"
             exit 1
           fi
 
@@ -117,24 +122,39 @@ jobs:
       - name: Remove previous release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [[ -z "${TAG:-}" ]]; then
+            echo "TAG belum di-set"
+            exit 1
+          fi
+
           gh release delete "$TAG" --yes || true
-          git push origin --delete "$TAG" || true
-          git tag -d "$TAG" || true
+          git push origin --delete "$TAG" >/dev/null 2>&1 || true
+          git tag -d "$TAG" >/dev/null 2>&1 || true
 
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
+          set -euo pipefail
+
           jq -n '{
             status: "queued",
             progress: 5,
             message: "Permintaan diterima"
           }' > status.json
 
-          gh release create "$TAG" \
-            --title "FBT Downloader Result" \
-            --notes-file status.json
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file status.json
+          else
+            gh release create "$TAG" \
+              --title "FBT Downloader Result" \
+              --notes-file status.json
+          fi
 
       - name: Update processing status
         env:
@@ -261,7 +281,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh release upload "$TAG" "$OUTPUT_FILE" --clobber
+          if [[ -z "${OUTPUT_FILE:-}" || ! -f "$OUTPUT_FILE" ]]; then
+            echo "File hasil download tidak ditemukan di OUTPUT_FILE"
+            exit 1
+          fi
+
+          gh release upload "$TAG" "$OUTPUT_FILE" --repo "$GITHUB_REPOSITORY" --clobber
 
       - name: Verify uploaded file
         env:
@@ -270,7 +295,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          FILE_NAME="${SAFE_FILE_NAME}"
+          FILE_NAME="${SAFE_FILE_NAME:-}"
+          if [[ -z "$FILE_NAME" ]]; then
+            echo "SAFE_FILE_NAME belum di-set"
+            exit 1
+          fi
 
           ASSETS=$(gh release view "$TAG" \
             --json assets \
@@ -316,6 +345,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          set -euo pipefail
+
           if [[ -n "${TAG:-}" ]] && gh release view "$TAG" >/dev/null 2>&1; then
             jq -n '{
               status: "failed",
