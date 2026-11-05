@@ -1,4 +1,3 @@
-
 name: Download Video
 
 on:
@@ -179,7 +178,6 @@ jobs:
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
-            --remote-components ejs:npm \
             -f "$SELECTOR" \
             --merge-output-format mp4 \
             --recode-video mp4 \
@@ -192,9 +190,13 @@ jobs:
             exit 1
           fi
 
-          echo "OUTPUT_FILE=$OUTPUT_FILE" >> "$GITHUB_ENV"
+          SAFE_OUTPUT_FILE="$RUNNER_TEMP/${INPUT_ID}.mp4"
+          cp "$OUTPUT_FILE" "$SAFE_OUTPUT_FILE"
 
-          ls -lh "$OUTPUT_FILE"
+          echo "OUTPUT_FILE=$SAFE_OUTPUT_FILE" >> "$GITHUB_ENV"
+          echo "SAFE_FILE_NAME=${INPUT_ID}.mp4" >> "$GITHUB_ENV"
+
+          ls -lh "$SAFE_OUTPUT_FILE"
 
       - name: Download MP3
         if: inputs.format == 'mp3'
@@ -220,7 +222,6 @@ jobs:
             --retries 3 \
             --fragment-retries 3 \
             --socket-timeout 30 \
-            --remote-components ejs:npm \
             -x \
             --audio-format mp3 \
             --audio-quality 0 \
@@ -233,9 +234,13 @@ jobs:
             exit 1
           fi
 
-          echo "OUTPUT_FILE=$OUTPUT_FILE" >> "$GITHUB_ENV"
+          SAFE_OUTPUT_FILE="$RUNNER_TEMP/${INPUT_ID}.mp3"
+          cp "$OUTPUT_FILE" "$SAFE_OUTPUT_FILE"
 
-          ls -lh "$OUTPUT_FILE"
+          echo "OUTPUT_FILE=$SAFE_OUTPUT_FILE" >> "$GITHUB_ENV"
+          echo "SAFE_FILE_NAME=${INPUT_ID}.mp3" >> "$GITHUB_ENV"
+
+          ls -lh "$SAFE_OUTPUT_FILE"
 
       - name: Update uploading status
         env:
@@ -265,7 +270,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          FILE_NAME=$(basename "$OUTPUT_FILE")
+          FILE_NAME="${SAFE_FILE_NAME}"
 
           ASSETS=$(gh release view "$TAG" \
             --json assets \
@@ -285,10 +290,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          FILE_NAME=$(basename "$OUTPUT_FILE")
+          FILE_NAME="${SAFE_FILE_NAME}"
 
           ENCODED_FILE=$(python -c \
-            'import os,urllib.parse; print(urllib.parse.quote(os.path.basename(os.environ["OUTPUT_FILE"])))')
+            'import os,urllib.parse; print(urllib.parse.quote(os.environ["SAFE_FILE_NAME"]))')
 
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ENCODED_FILE}"
 
